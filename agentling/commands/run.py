@@ -101,7 +101,7 @@ async def execute_run(args: argparse.Namespace) -> int:
     # Check if UI server is running
     if not check_server(port):
         print(f"Error: Agentling UI server is not running on port {port}")
-        print(f"Start it first with: agentling ui")
+        print(f"Start it first with: vesper ui")
         return 1
 
     working_dir = str(Path(args.workdir).resolve())

@@ -182,7 +182,7 @@ export default function Dashboard() {
               <Cpu size={32} className="mx-auto mb-2 opacity-50" />
               <p>No active work</p>
               <p className="text-sm mt-1">
-                Start Interactive, run a Pattern, or use <code className="bg-gray-800 px-1 rounded">agentling run</code>
+                Start Interactive, run a Pattern, or use <code className="bg-gray-800 px-1 rounded">vesper run</code>
               </p>
             </div>
           ) : (

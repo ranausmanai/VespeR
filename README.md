@@ -8,7 +8,9 @@ VespeR is for teams/solo builders who want more than a single chat window:
 - execution DAG + timeline visibility
 - resumable interactive sessions with compact context
 
-The CLI command is currently still `agentling` (historical naming).
+CLI commands:
+- `vesper` (preferred)
+- `agentling` (backward-compatible alias)
 
 ## What It Is
 
@@ -50,7 +52,7 @@ npm -C frontend install
 npm -C frontend run build
 
 # 3) run VespeR UI
-agentling ui --port 8420 --no-browser
+vesper ui --port 8420 --no-browser
 ```
 
 Open `http://127.0.0.1:8420`.
@@ -59,13 +61,13 @@ Open `http://127.0.0.1:8420`.
 
 ```bash
 # UI
-agentling ui
+vesper ui
 
 # One-shot tracked run
-agentling run "add JWT auth with tests"
+vesper run "add JWT auth with tests"
 
 # Replay run
-agentling replay <run-id>
+vesper replay <run-id>
 ```
 
 ## Pattern Test Prompts
@@ -92,7 +94,7 @@ Assess this repo for v0.1 alpha release readiness. Return go/no-go, top 5 risks,
 
 ```bash
 # backend + API server + built frontend
-agentling ui --port 8420
+vesper ui --port 8420
 
 # frontend dev (optional)
 npm -C frontend run dev

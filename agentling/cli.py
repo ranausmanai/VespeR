@@ -6,15 +6,22 @@ import argparse
 import asyncio
 import json
 import sys
+from pathlib import Path
 
 from agentling.config import load_config
 from agentling.orchestrator import Orchestrator
 
 
+def _invoked_name() -> str:
+    name = Path(sys.argv[0]).name.strip().lower()
+    return "vesper" if name == "vesper" else "agentling"
+
+
 def _build_parser() -> argparse.ArgumentParser:
+    cmd = _invoked_name()
     parser = argparse.ArgumentParser(
-        prog="agentling",
-        description="Agentling: Visual control plane for Claude Code with multi-agent orchestration.",
+        prog=cmd,
+        description="VespeR: Visual control plane for Claude Code with multi-agent orchestration.",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -74,9 +81,10 @@ def _render_markdown(summary) -> str:
 
 
 async def _run_orchestration(args: argparse.Namespace) -> int:
+    cmd = _invoked_name()
     instruction = getattr(args, "instruction", None)
     if not instruction:
-        print("Instruction is required. Example: agentling orchestrate \"build CLI\"", file=sys.stderr)
+        print(f"Instruction is required. Example: {cmd} orchestrate \"build CLI\"", file=sys.stderr)
         return 2
 
     config = load_config(args.config)
@@ -120,6 +128,7 @@ async def _run_orchestration(args: argparse.Namespace) -> int:
 
 
 def main() -> None:
+    cmd = _invoked_name()
     parser = _build_parser()
     args = parser.parse_args()
 
@@ -143,23 +152,23 @@ def main() -> None:
         print("""
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║     🤖 Agentling - Visual Control Plane for Claude Code     ║
+║       🌌 VespeR - Control Plane for Claude Code            ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 
 Commands:
-  agentling ui              Start the visual web UI
-  agentling run "<prompt>"  Run Claude Code with tracking
-  agentling replay <id>     Replay a past session
-  agentling orchestrate     Run multi-agent orchestration
+  {cmd} ui              Start the visual web UI
+  {cmd} run "<prompt>"  Run Claude Code with tracking
+  {cmd} replay <id>     Replay a past session
+  {cmd} orchestrate     Run multi-agent orchestration
 
 Quick Start:
-  agentling ui              # Open the visual interface
-  agentling run "fix bug"   # Run with event tracking
+  {cmd} ui              # Open the visual interface
+  {cmd} run "fix bug"   # Run with event tracking
 
 For more help:
-  agentling <command> --help
-        """)
+  {cmd} <command> --help
+        """.format(cmd=cmd))
         code = 0
 
     raise SystemExit(code)

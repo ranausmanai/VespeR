@@ -26,6 +26,7 @@ dev = [
 
 [project.scripts]
 agentling = "agentling.cli:main"
+vesper = "agentling.cli:main"
 
 [tool.setuptools]
 packages = [
