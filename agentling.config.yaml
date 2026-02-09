@@ -1,0 +1,71 @@
+provider:
+  type: openai            # openai | codex_cli | claude_code | ollama
+  model: gpt-4o-mini
+  timeout_seconds: 120
+  max_tokens: 1800
+  temperature: 0.2
+  # command: "codex run {prompt}"      # for codex_cli
+  # command: "claude --print {prompt}" # for claude_code
+  # endpoint: "http://127.0.0.1:11434/api/generate" # for ollama
+
+parallelism: 4
+dry_run: false
+cache_enabled: true
+execute_generated_tests: false
+
+enabled_agents: []
+
+budget:
+  max_total_tokens: 200000
+  max_total_cost_usd: 5.0
+
+logging:
+  level: info
+  show_agent_steps: true
+
+graph:
+  nodes:
+    - id: planner
+      role: Planner Agent
+      prompt_template: Decompose the task into an execution plan.
+      depends_on: []
+
+    - id: requirement_structurer
+      role: Requirement Structurer
+      prompt_template: Convert requirements into clear acceptance criteria.
+      depends_on: [planner]
+
+    - id: edge_case_analyzer
+      role: Edge Case Analyzer
+      prompt_template: Identify edge cases, failure paths, and hidden assumptions.
+      depends_on: [planner]
+
+    - id: implementation_generator
+      role: Implementation Generator
+      prompt_template: Produce implementation strategy and concrete code.
+      depends_on: [requirement_structurer, edge_case_analyzer]
+
+    - id: test_writer
+      role: Test Writer
+      prompt_template: Write tests that verify core behavior and edge cases.
+      depends_on: [implementation_generator, edge_case_analyzer]
+
+    - id: refactor_agent
+      role: Refactor Agent
+      prompt_template: Improve clarity, maintainability, and modularity.
+      depends_on: [implementation_generator]
+
+    - id: security_reviewer
+      role: Security Reviewer
+      prompt_template: Review generated solution for security risks and mitigations.
+      depends_on: [implementation_generator, edge_case_analyzer]
+
+    - id: performance_reviewer
+      role: Performance Reviewer
+      prompt_template: Review performance implications and optimize hotspots.
+      depends_on: [implementation_generator]
+
+    - id: final_synthesizer
+      role: Final Synthesizer
+      prompt_template: Merge strongest ideas into one final response with rationale.
+      depends_on: [test_writer, refactor_agent, security_reviewer, performance_reviewer]

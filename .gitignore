@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+.agentling-cache/
+.pytest_cache/
+.DS_Store
+
+# Python build artifacts
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Frontend artifacts
+frontend/node_modules/
+frontend/dist/
+
+# Local runtime/output
+*.log
+*.db
+test-results/
+
+# Local assistant/session context files
+mycontext.md
+claude.md
+.claude/
+.opticode/
