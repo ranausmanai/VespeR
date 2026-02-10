@@ -2,75 +2,121 @@
 
 Visual control plane for Claude Code workflows.
 
-VespeR is for teams/solo builders who want more than a single chat window:
-- reusable agents
+[Website](https://vesper.run) • [Repository](https://github.com/ranausmanai/VespeR)
+
+VespeR helps you run coding workflows with more control than a single chat stream:
+- reusable specialist agents
 - reusable multi-agent patterns
-- execution DAG + timeline visibility
-- resumable interactive sessions with compact context
+- execution observability (DAG + timeline + activity)
+- resumable interactive sessions with smart memory context
 
 CLI commands:
 - `vesper` (preferred)
 - `agentling` (backward-compatible alias)
 
-## What It Is
+## Product Tour
 
-VespeR gives you:
-1. Interactive coding sessions you can rejoin.
-2. Agent Dock to run specialist agents (reviewer, security, strategist, etc.).
-3. Pattern execution (Solo, Build+Review loop, Expert panel, Debate).
-4. Execution observability: DAG, timeline, activity stream, per-agent flow.
-5. Session snapshots for smart resume of ended interactive work.
+![VespeR Flow](docs/gifs/vesper-flow.gif)
 
-## Core Use Cases
+![VespeR UI Feature Strip](docs/screenshots/vesper-feature-strip.png)
 
-1. Build + review loop
-- Use the `Build + Review Loop` pattern to generate code and auto-review before merge.
+## What VespeR Does
+
+1. Interactive sessions you can rejoin
+- Start multiple interactive sessions and switch between them.
+- Stop current response without ending the session.
+
+2. Agent Dock in chat
+- Ask a specialist agent (reviewer, security, strategist, etc.).
+- Inject agent output back into the active interactive session.
+
+3. Pattern execution
+- Run saved patterns such as:
+  - `Quick Build (Solo)`
+  - `Build + Review Loop`
+  - `Release Readiness Panel`
+  - `Expert Panel`
+  - `Debate`
+
+4. Execution visibility
+- See what happened via DAG, timeline, and split activity views.
+- Inspect tool usage and file-touch activity during agent/pattern runs.
+
+5. Smart resume memory
+- Ended runs are converted into structured memory.
+- New interactive runs can start with ranked context packs (goal, touched files, open loops, validations, next action).
+
+## Key Use Cases
+
+1. Build and review in one pass
+- Run `Build + Review Loop` so code generation and code review are linked.
 
 2. Release go/no-go checks
-- Use `Release Readiness Panel` for security/performance/product sign-off in one run.
+- Run `Release Readiness Panel` for security/performance/product sign-off.
 
-3. Long-running coding continuity
-- End session, then `Resume this run` to restart with compressed context.
+3. Long-running continuity
+- End and later resume with context pack instead of replaying long transcripts.
 
 4. Debugging agent behavior
-- Inspect `Agent Execution` with DAG/Timeline/Split to see exactly what happened.
+- Use DAG/timeline/activity to diagnose loops, failures, and churn.
 
 ## Requirements
 
-- Python 3.10+
-- Node.js 18+
-- Claude Code CLI available in PATH
+- Python `3.10+`
+- Node.js `18+`
+- Claude Code CLI available on `PATH`
 
-## Quick Start
+## Install
 
 ```bash
-# 1) install backend package
+# Clone
+git clone https://github.com/ranausmanai/VespeR.git
+cd VespeR
+
+# Backend
 pip install -e .
 
-# 2) install frontend deps + build
+# Frontend
 npm -C frontend install
 npm -C frontend run build
+```
 
-# 3) run VespeR UI
+## Run
+
+```bash
+# Start UI + API server
 vesper ui --port 8420 --no-browser
 ```
 
-Open `http://127.0.0.1:8420`.
+Open: `http://127.0.0.1:8420`
 
-## Main Commands
+If `vesper` is not found, use:
+```bash
+agentling ui --port 8420 --no-browser
+```
+
+## CLI Commands
 
 ```bash
-# UI
+# Start UI
 vesper ui
 
 # One-shot tracked run
 vesper run "add JWT auth with tests"
 
-# Replay run
+# Replay run timeline in terminal
 vesper replay <run-id>
 ```
 
-## Pattern Test Prompts
+## Quick Workflow (UI)
+
+1. Create a project session in `Sessions`.
+2. Start an interactive session in `Interactive`.
+3. Use Agent Dock for ask/inject specialist agents.
+4. Run a pattern in `Patterns` and inspect it in `Agent Execution`.
+5. End and resume with context pack in `Sessions > Resume this run`.
+
+## Example Prompts
 
 Build + Review Loop:
 ```text
@@ -82,33 +128,31 @@ Release Readiness Panel:
 Assess this repo for v0.1 alpha release readiness. Return go/no-go, top 5 risks, and this-week fixes.
 ```
 
-## UI Notes
+## Screenshots
 
-- `Sessions > Resume this run` starts a new interactive run seeded with snapshot context.
-- `Dashboard > Active Work` includes interactive sessions, active patterns, and one-shot runs.
-- Sidebar badges:
-  - `Interactive`: active interactive sessions
-  - `Patterns`: active pattern executions
+Dashboard:
+![Dashboard](docs/screenshots/01-dashboard.png)
+
+Interactive:
+![Interactive](docs/screenshots/03-interactive.png)
+
+Patterns:
+![Patterns](docs/screenshots/05-patterns.png)
+
+Agent Execution:
+![Agent Execution](docs/screenshots/06-agent-execution.png)
+
+## Project Notes
+
+- VespeR started as Agentling and was rebranded.
+- Internal package/module names may still reference `agentling` for compatibility.
 
 ## Development
 
 ```bash
-# backend + API server + built frontend
-vesper ui --port 8420
-
-# frontend dev (optional)
+# Run frontend in dev mode (optional)
 npm -C frontend run dev
 ```
-
-## Screenshots / GIFs
-
-Recommended to add before broader launch:
-- Dashboard with Active Work
-- Agent Execution (split view)
-- Pattern run result
-- Interactive resume flow
-
-Place assets under `docs/screenshots/` and reference them here.
 
 ## License
 
