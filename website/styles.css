@@ -1,0 +1,243 @@
+:root {
+  --bg-0: #030712;
+  --bg-1: #0b1220;
+  --ink: #e8f0ff;
+  --muted: #9fb2d6;
+  --cyan: #22d3ee;
+  --amber: #f59e0b;
+  --line: #1f2c42;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 700px at 80% -20%, #13203a 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, #111827 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-0));
+  overflow-x: hidden;
+}
+
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 0.6px, transparent 0.6px);
+  background-size: 3px 3px;
+  opacity: 0.3;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  backdrop-filter: blur(10px);
+  background: rgba(3, 7, 18, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.brand-mark {
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 0.5rem;
+  display: inline-grid;
+  place-items: center;
+  color: #09111f;
+  background: linear-gradient(135deg, var(--cyan), #8b5cf6);
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+nav a:hover {
+  color: var(--ink);
+}
+
+main {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.hero {
+  padding: 8rem 0 4rem;
+}
+
+.eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  color: #8ac6f6;
+}
+
+h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(2.2rem, 7vw, 4.5rem);
+  line-height: 1.05;
+}
+
+h1 span {
+  color: var(--cyan);
+}
+
+.sub {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #03101e;
+  background: linear-gradient(135deg, var(--cyan), #93c5fd);
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  padding: 0.65rem 1rem;
+  font-weight: 700;
+}
+
+.button.ghost {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.stack {
+  padding: 2rem 0 1rem;
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 1rem 0 1.5rem;
+}
+
+.grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.card {
+  background: rgba(14, 22, 36, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22);
+}
+
+.card h3 {
+  margin: 0 0 0.4rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+pre {
+  margin: 0.8rem 0 0;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 0.7rem;
+  padding: 0.8rem;
+  overflow: auto;
+}
+
+code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+  color: #c9ddff;
+}
+
+.docs .links {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.docs .links a {
+  color: #8ac6f6;
+  text-decoration: none;
+}
+
+footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 3rem;
+  padding: 1rem 2rem 2rem;
+  text-align: center;
+  color: #89a1c8;
+}
+
+@media (max-width: 900px) {
+  .grid.three,
+  .grid.two {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    padding: 0.8rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

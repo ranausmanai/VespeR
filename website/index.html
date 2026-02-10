@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VespeR.run - Control Plane For Claude Code</title>
+    <meta
+      name="description"
+      content="VespeR is a control plane for Claude Code workflows: interactive sessions, agent patterns, DAG visibility, and resumable context."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="starfield" aria-hidden="true"></canvas>
+    <div class="noise" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#home">
+        <span class="brand-mark">V</span>
+        <span>VespeR.run</span>
+      </a>
+      <nav>
+        <a href="#what">What</a>
+        <a href="#use-cases">Use Cases</a>
+        <a href="#docs">Docs</a>
+      </nav>
+      <a class="button ghost" href="https://github.com/ranausmanai/VespeR" target="_blank" rel="noreferrer">GitHub</a>
+    </header>
+
+    <main id="home">
+      <section class="hero">
+        <p class="eyebrow">CONTROL PLANE FOR CLAUDE CODE</p>
+        <h1>Ship Faster With <span>Agent Workflows</span>, Not Just Chat</h1>
+        <p class="sub">
+          VespeR gives you interactive coding sessions, reusable agents and patterns,
+          DAG/timeline visibility, and resumable context snapshots.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="#docs">Get Started</a>
+          <a class="button ghost" href="#use-cases">See Use Cases</a>
+        </div>
+      </section>
+
+      <section id="what" class="grid three">
+        <article class="card">
+          <h3>Interactive Sessions</h3>
+          <p>Run and rejoin coding sessions. Stop responses, inject prompts, and switch contexts quickly.</p>
+        </article>
+        <article class="card">
+          <h3>Agents + Patterns</h3>
+          <p>Use specialists and workflow templates: Solo, Build+Review Loop, Expert Panels, Debate.</p>
+        </article>
+        <article class="card">
+          <h3>Execution Visibility</h3>
+          <p>Inspect runs via DAG, timeline, and activity stream. Understand what happened and why.</p>
+        </article>
+      </section>
+
+      <section id="use-cases" class="stack">
+        <h2>Real Use Cases</h2>
+        <div class="grid two">
+          <article class="card">
+            <h3>Build + Review Loop</h3>
+            <p>Generate feature code and auto-review it until quality bar is met.</p>
+            <pre><code>[Pattern: Build + Review Loop]
+Add slugify utility with tests and run npm test.</code></pre>
+          </article>
+          <article class="card">
+            <h3>Release Readiness Panel</h3>
+            <p>Get security, performance, and product sign-off before release.</p>
+            <pre><code>[Pattern: Release Readiness Panel]
+Assess v0.1 release readiness with go/no-go and blockers.</code></pre>
+          </article>
+          <article class="card">
+            <h3>Session Continuity</h3>
+            <p>End a session and resume from a smart snapshot without replaying everything.</p>
+          </article>
+          <article class="card">
+            <h3>Agent Debugging</h3>
+            <p>Trace tool calls, files touched, and agent flow when patterns behave unexpectedly.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="docs" class="stack docs">
+        <h2>Docs & Quickstart</h2>
+        <div class="card">
+          <p>Install and run locally:</p>
+          <pre><code>pip install -e .
+npm -C frontend install
+npm -C frontend run build
+vesper ui --port 8420 --no-browser</code></pre>
+          <p class="links">
+            <a href="https://github.com/ranausmanai/VespeR" target="_blank" rel="noreferrer">Repository</a>
+            <a href="https://github.com/ranausmanai/VespeR#readme" target="_blank" rel="noreferrer">README</a>
+            <a href="https://github.com/ranausmanai/VespeR/issues" target="_blank" rel="noreferrer">Issues</a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>VespeR.run • Workflow control plane for Claude Code</p>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
