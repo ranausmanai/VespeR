@@ -234,7 +234,7 @@ export default function Sessions() {
                                 {run.prompt.slice(0, 80)}...
                               </p>
                               <p className="text-sm text-gray-400">
-                                {run.model} • {formatDuration(run.duration_ms)} • {run.tokens_in + run.tokens_out} tokens
+                                {run.model} • {formatRunDuration(run)} • {run.tokens_in + run.tokens_out} tokens
                               </p>
                             </div>
                           </div>
@@ -290,13 +290,9 @@ function getRunRoute(run: Run, activeInteractiveRunIds: Set<string>): string {
 }
 
 function canResumeFromRun(run: Run): boolean {
-  const prompt = run.prompt || ''
-  // Treat regular Claude chat runs as resumable; skip agent/pattern orchestration runs.
-  return !(
-    prompt.startsWith('[Agent Pattern:') ||
-    prompt.startsWith('[Agent:') ||
-    prompt.startsWith('[Agent Context:')
-  )
+  // Allow resuming from any finished run type (interactive, agent, or pattern).
+  // For active runs, users should rejoin directly via the active session picker.
+  return run.status !== 'running' && run.status !== 'pending'
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -319,4 +315,26 @@ function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
   return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`
+}
+
+function formatRunDuration(run: Run): string {
+  const duration = Number(run.duration_ms)
+  if (Number.isFinite(duration) && duration >= 0) {
+    return formatDuration(duration)
+  }
+
+  const started = run.started_at ? Date.parse(run.started_at) : NaN
+  const created = run.created_at ? Date.parse(run.created_at) : NaN
+  const anchor = Number.isFinite(started) ? started : created
+  const completed = run.completed_at ? Date.parse(run.completed_at) : NaN
+
+  if (Number.isFinite(anchor) && Number.isFinite(completed) && completed >= anchor) {
+    return formatDuration(completed - anchor)
+  }
+
+  if (run.status === 'running' && Number.isFinite(anchor)) {
+    return formatDuration(Math.max(0, Date.now() - anchor))
+  }
+
+  return '—'
 }

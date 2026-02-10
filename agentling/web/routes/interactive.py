@@ -30,6 +30,12 @@ class InvokeAgentRequest(BaseModel):
     inject_to_session: bool = False
 
 
+class ContextPackResponse(BaseModel):
+    goal: Optional[str] = None
+    summary: dict[str, Any] = {}
+    resume_prompt: str
+
+
 def _snapshot_to_dict(snapshot) -> dict:
     return {
         "id": snapshot.id,
@@ -355,6 +361,38 @@ async def get_latest_snapshot_for_session(request: Request, session_id: str):
     if not snapshot:
         return {"snapshot": None}
     return {"snapshot": _snapshot_to_dict(snapshot)}
+
+
+@router.get("/session/{session_id}/context-pack")
+async def get_context_pack_for_session(
+    request: Request,
+    session_id: str,
+    source_run_id: Optional[str] = None,
+):
+    """Get ranked smart context pack assembled from structured run memory."""
+    db = request.app.state.db
+    session_manager = request.app.state.session_manager
+    session = await db.sessions.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    pack = await session_manager.build_session_context_pack(
+        session_id=session_id,
+        source_run_id=source_run_id,
+        max_entries=5,
+    )
+
+    return {
+        "snapshot": {
+            "id": f"context-pack-{session_id}",
+            "run_id": source_run_id or "",
+            "session_id": session_id,
+            "goal": pack.get("goal") or None,
+            "summary": pack.get("summary") or {},
+            "resume_prompt": pack.get("resume_prompt") or "",
+            "created_at": None,
+        }
+    }
 
 
 @router.post("/{run_id}/message")

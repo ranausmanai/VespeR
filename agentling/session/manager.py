@@ -8,6 +8,7 @@ from typing import Optional, AsyncIterator, Callable, Awaitable
 from .pty_controller import PTYController
 from .interactive import InteractiveSession
 from .git_tracker import GitTracker
+from .memory import persist_run_memory, build_context_pack
 from ..events.types import Event, EventType
 from ..events.bus import EventBus
 from ..persistence.database import Database
@@ -194,6 +195,22 @@ class SessionManager:
             resume_prompt=resume_prompt,
         )
 
+    async def build_session_context_pack(
+        self,
+        session_id: str,
+        source_run_id: Optional[str] = None,
+        max_entries: int = 5,
+    ) -> dict:
+        """Build a smart context pack from ranked run memories for a session."""
+        if not self.db.run_memory:
+            return {
+                "goal": "",
+                "summary": {"source": "memory_pack", "entries_used": 0, "fallback": "repository_unavailable"},
+                "resume_prompt": "Resume this coding session by first confirming the objective and current state.",
+            }
+        memories = await self.db.run_memory.list_for_session(session_id, limit=60)
+        return build_context_pack(memories, source_run_id=source_run_id, max_entries=max_entries)
+
     @staticmethod
     def _extract_result_usage(event: Event) -> tuple[int, int]:
         """Extract token usage only from finalized result events."""
@@ -322,9 +339,13 @@ class SessionManager:
             duration_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
             await self.db.runs.update_metrics(run_id, duration_ms=duration_ms)
             await self.db.runs.update_status(run_id, "completed")
+            await persist_run_memory(self.db, run_id)
 
         except Exception as e:
+            duration_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            await self.db.runs.update_metrics(run_id, duration_ms=duration_ms)
             await self.db.runs.update_status(run_id, "failed", str(e))
+            await persist_run_memory(self.db, run_id)
             raise
         finally:
             # Cleanup
@@ -399,6 +420,8 @@ class SessionManager:
             run_id=run_id,
             payload={}
         ))
+
+        await persist_run_memory(self.db, run_id)
 
         self._active_runs.pop(run_id, None)
         self._git_trackers.pop(run_id, None)
@@ -593,6 +616,7 @@ class SessionManager:
         self._interactive_sessions.pop(run_id, None)
         self._interactive_tasks.pop(run_id, None)
         self._git_trackers.pop(run_id, None)
+        await persist_run_memory(self.db, run_id)
         await self._create_interactive_snapshot(run_id)
 
         return True

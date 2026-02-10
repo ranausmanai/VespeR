@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Activity, Home, Layers, Wifi, WifiOff, Bot, Workflow, MessageCircle } from 'lucide-react'
+import { Activity, Home, Layers, Wifi, WifiOff, Bot, Workflow, MessageCircle, Github, Mail, Globe } from 'lucide-react'
 import { useStore } from '../../store'
 import { wsClient } from '../../api/websocket'
 import { getActiveRuns } from '../../api/client'
@@ -83,13 +83,19 @@ export default function Layout() {
       <aside className="w-56 flex flex-col py-4 px-3 bg-gray-900 border-r border-gray-800">
         {/* Originally Agentling, now rebranded as VespeR. */}
         {/* Logo */}
-        <div className="flex items-center gap-3 px-2 mb-6">
+        <a
+          href="https://vesper.run"
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-3 px-2 mb-6 rounded-lg hover:bg-gray-800/60 transition-colors"
+          title="Open VespeR website"
+        >
           <img src="/favicon.svg" alt="VespeR logo" className="w-10 h-10 rounded-xl" />
           <div>
             <p className="text-white font-semibold leading-tight">VespeR</p>
-            <p className="text-xs text-gray-400 leading-tight">VespeR.run</p>
+            <p className="text-xs text-gray-400 leading-tight hover:text-blue-300 transition-colors">VespeR.run</p>
           </div>
-        </div>
+        </a>
 
         {/* Nav */}
         <nav className="flex-1 flex flex-col gap-2">
@@ -121,6 +127,46 @@ export default function Layout() {
 
         {/* Status indicators */}
         <div className="flex flex-col gap-3 mt-auto px-2">
+          <div className="flex items-center gap-2">
+            <a
+              href="https://vesper.run"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+              title="Website"
+            >
+              <Globe size={16} />
+            </a>
+
+            <a
+              href="https://github.com/ranausmanai/VespeR"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+              title="GitHub"
+            >
+              <Github size={16} />
+            </a>
+
+            <a
+              href="mailto:usmanashrafrana@gmail.com"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+              title="Email"
+            >
+              <Mail size={16} />
+            </a>
+
+            <a
+              href="https://x.com/UsmanReads"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors"
+              title="X"
+            >
+              <span className="inline-flex items-center justify-center w-4 h-4 text-xs font-semibold">X</span>
+            </a>
+          </div>
+
           {activeRuns.length > 0 && (
             <div className="flex items-center justify-between text-sm" title={`${activeRuns.length} active runs`}>
               <div className="flex items-center gap-2 text-green-400">

@@ -25,6 +25,29 @@ interface SessionSnapshot {
   created_at?: string;
 }
 
+interface ContextPackEntry {
+  run_id: string;
+  objective?: string;
+  short_summary?: string;
+  status?: string;
+  files_touched_count?: number;
+  open_loops_count?: number;
+  created_at?: string;
+}
+
+interface RunGitSnapshot {
+  dirty_files?: string[];
+  staged_files?: string[];
+}
+
+interface RunDetail {
+  id: string;
+  prompt?: string;
+  status?: string;
+  final_output?: string;
+  git_snapshots?: RunGitSnapshot[];
+}
+
 interface Session {
   id: string;
   name: string;
@@ -37,6 +60,15 @@ interface Agent {
   description?: string;
   role?: string;
   model?: string;
+}
+
+function getContextPackEntries(snapshot: SessionSnapshot | null): ContextPackEntry[] {
+  if (!snapshot?.summary) return [];
+  const selected = (snapshot.summary as Record<string, unknown>).selected_entries;
+  if (!Array.isArray(selected)) return [];
+  return selected.filter((item): item is ContextPackEntry => {
+    return !!item && typeof item === 'object' && typeof (item as ContextPackEntry).run_id === 'string';
+  });
 }
 
 export const Interactive: React.FC = () => {
@@ -63,6 +95,8 @@ export const Interactive: React.FC = () => {
   const [pendingRequestedRunId, setPendingRequestedRunId] = useState<string | null>(requestedRunId);
   const [latestSnapshot, setLatestSnapshot] = useState<SessionSnapshot | null>(null);
   const [useSnapshotOnStart, setUseSnapshotOnStart] = useState(!disableSnapshot);
+  const contextPackEntries = getContextPackEntries(latestSnapshot);
+  const isMemoryPack = (latestSnapshot?.summary as Record<string, unknown> | undefined)?.source === 'memory_pack';
 
   useEffect(() => {
     setPendingRequestedRunId(requestedRunId);
@@ -171,12 +205,74 @@ export const Interactive: React.FC = () => {
         return;
       }
       try {
+        // Prefer smart context pack assembled from ranked run memory.
+        const contextPackUrl = snapshotRunId
+          ? `/api/interactive/session/${selectedSession}/context-pack?source_run_id=${encodeURIComponent(snapshotRunId)}`
+          : `/api/interactive/session/${selectedSession}/context-pack`;
+        const contextPack = await fetch(contextPackUrl);
+        if (contextPack.ok) {
+          const data = await contextPack.json();
+          const snapshot = data?.snapshot;
+          if (snapshot?.resume_prompt) {
+            setLatestSnapshot(snapshot);
+            return;
+          }
+        }
+
         if (snapshotRunId) {
           const specific = await fetch(`/api/interactive/${snapshotRunId}/snapshot`);
           if (specific.ok) {
             const data = await specific.json();
             setLatestSnapshot(data || null);
             return;
+          }
+          if (specific.status === 404) {
+            // Pattern/agent runs usually don't have interactive snapshots; build a compact fallback.
+            const runResponse = await fetch(`/api/runs/${snapshotRunId}`);
+            if (runResponse.ok) {
+              const runData = (await runResponse.json()) as RunDetail;
+              const promptText = (runData.prompt || '').trim();
+              const clippedPrompt = promptText.slice(0, 1600);
+              const clippedOutput = (runData.final_output || '').trim().slice(0, 1200);
+              const touchedFiles = new Set<string>();
+
+              for (const snap of runData.git_snapshots || []) {
+                for (const file of snap.dirty_files || []) touchedFiles.add(file);
+                for (const file of snap.staged_files || []) touchedFiles.add(file);
+              }
+
+              const filesList = Array.from(touchedFiles).slice(0, 8);
+              const filesSection = filesList.length
+                ? `\nTouched files:\n${filesList.map((f) => `- ${f}`).join('\n')}`
+                : '';
+              const outputSection = clippedOutput
+                ? `\nLast output excerpt:\n${clippedOutput}`
+                : '';
+              const resumePrompt = [
+                'Resume from this prior run context.',
+                '',
+                'Original run prompt:',
+                clippedPrompt || '(empty prompt)',
+                '',
+                `Previous run status: ${runData.status || 'unknown'}`,
+                filesSection,
+                outputSection,
+                '',
+                'Continue from the current state and avoid repeating already completed steps.',
+              ]
+                .filter(Boolean)
+                .join('\n');
+
+              setLatestSnapshot({
+                id: `fallback-${snapshotRunId}`,
+                run_id: snapshotRunId,
+                session_id: selectedSession,
+                goal: clippedPrompt.slice(0, 120),
+                summary: { source: 'run_fallback' },
+                resume_prompt: resumePrompt,
+              });
+              return;
+            }
           }
         }
 
@@ -422,6 +518,23 @@ export const Interactive: React.FC = () => {
                             Goal: {latestSnapshot.goal}
                           </span>
                         ) : null}
+                        {isMemoryPack && contextPackEntries.length > 0 ? (
+                          <span className="block mt-2 rounded border border-gray-700 bg-gray-950/70 p-2">
+                            <span className="block text-xs text-cyan-300 mb-1">
+                              Context Pack Preview ({contextPackEntries.length} memories)
+                            </span>
+                            <span className="block space-y-1 max-h-36 overflow-y-auto pr-1">
+                              {contextPackEntries.slice(0, 5).map((entry) => (
+                                <span key={entry.run_id} className="block text-xs text-gray-400">
+                                  <span className="text-gray-300">{entry.short_summary || entry.objective || entry.run_id}</span>
+                                  <span className="ml-1 text-gray-500">
+                                    ({entry.files_touched_count || 0} files, {entry.open_loops_count || 0} loops)
+                                  </span>
+                                </span>
+                              ))}
+                            </span>
+                          </span>
+                        ) : null}
                       </span>
                     </label>
                   </div>
@@ -557,6 +670,23 @@ export const Interactive: React.FC = () => {
                   {latestSnapshot.goal ? (
                     <span className="block text-xs text-gray-400 mt-1 whitespace-pre-wrap break-words max-h-24 overflow-y-auto pr-1">
                       Goal: {latestSnapshot.goal}
+                    </span>
+                  ) : null}
+                  {isMemoryPack && contextPackEntries.length > 0 ? (
+                    <span className="block mt-2 rounded border border-gray-700 bg-gray-950/70 p-2">
+                      <span className="block text-xs text-cyan-300 mb-1">
+                        Context Pack Preview ({contextPackEntries.length} memories)
+                      </span>
+                      <span className="block space-y-1 max-h-36 overflow-y-auto pr-1">
+                        {contextPackEntries.slice(0, 5).map((entry) => (
+                          <span key={entry.run_id} className="block text-xs text-gray-400">
+                            <span className="text-gray-300">{entry.short_summary || entry.objective || entry.run_id}</span>
+                            <span className="ml-1 text-gray-500">
+                              ({entry.files_touched_count || 0} files, {entry.open_loops_count || 0} loops)
+                            </span>
+                          </span>
+                        ))}
+                      </span>
                     </span>
                   ) : null}
                 </span>

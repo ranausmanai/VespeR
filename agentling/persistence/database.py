@@ -7,7 +7,8 @@ from typing import Optional
 
 from .repositories import (
     SessionRepository, RunRepository, EventRepository, GitSnapshotRepository,
-    AgentRepository, AgentRunRepository, AgentPatternRepository, SessionSnapshotRepository
+    AgentRepository, AgentRunRepository, AgentPatternRepository, SessionSnapshotRepository,
+    RunMemoryRepository
 )
 
 
@@ -34,6 +35,7 @@ class Database:
         self.agent_runs: Optional[AgentRunRepository] = None
         self.agent_patterns: Optional[AgentPatternRepository] = None
         self.session_snapshots: Optional[SessionSnapshotRepository] = None
+        self.run_memory: Optional[RunMemoryRepository] = None
 
     async def connect(self) -> None:
         """Connect to database and run migrations."""
@@ -59,6 +61,7 @@ class Database:
             self.agent_runs = AgentRunRepository(self._connection)
             self.agent_patterns = AgentPatternRepository(self._connection)
             self.session_snapshots = SessionSnapshotRepository(self._connection)
+            self.run_memory = RunMemoryRepository(self._connection)
 
     async def disconnect(self) -> None:
         """Close database connection."""

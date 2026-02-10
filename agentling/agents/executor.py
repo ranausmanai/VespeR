@@ -5,12 +5,14 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, AsyncIterator, Callable, Awaitable
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from ..events.types import Event, EventType
 from ..events.bus import EventBus
 from ..persistence.database import Database
 from ..persistence.repositories import Agent, AgentRun, AgentPattern, Run
 from ..session.pty_controller import PTYController
+from ..session.memory import persist_run_memory
 
 
 class PatternType(str, Enum):
@@ -97,6 +99,8 @@ class AgentExecutor:
         if not session:
             raise ValueError(f"Session {session_id} not found")
 
+        start_time = datetime.utcnow()
+
         # Create a run for this pattern execution
         run = await self.db.runs.create(
             session_id=session_id,
@@ -148,7 +152,10 @@ class AgentExecutor:
                     yield event
 
             # Pattern completed
+            duration_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            await self.db.runs.update_metrics(run.id, duration_ms=duration_ms)
             await self.db.runs.update_status(run.id, "completed")
+            await persist_run_memory(self.db, run.id)
 
             complete_event = Event(
                 type=EventType.RUN_COMPLETED,
@@ -164,7 +171,10 @@ class AgentExecutor:
             yield complete_event
 
         except Exception as e:
+            duration_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+            await self.db.runs.update_metrics(run.id, duration_ms=duration_ms)
             await self.db.runs.update_status(run.id, "failed", str(e))
+            await persist_run_memory(self.db, run.id)
             error_event = Event(
                 type=EventType.RUN_FAILED,
                 session_id=session_id,

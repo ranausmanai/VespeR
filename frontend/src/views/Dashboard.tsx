@@ -345,7 +345,7 @@ function RunCard({
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-400">
           <span>{run.model}</span>
-          <span>{formatDuration(run.duration_ms)}</span>
+          <span>{formatRunDuration(run)}</span>
         </div>
       </div>
     </Link>
@@ -395,4 +395,26 @@ function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
   return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`
+}
+
+function formatRunDuration(run: Run): string {
+  const duration = Number(run.duration_ms)
+  if (Number.isFinite(duration) && duration >= 0) {
+    return formatDuration(duration)
+  }
+
+  const started = run.started_at ? Date.parse(run.started_at) : NaN
+  const created = run.created_at ? Date.parse(run.created_at) : NaN
+  const anchor = Number.isFinite(started) ? started : created
+  const completed = run.completed_at ? Date.parse(run.completed_at) : NaN
+
+  if (Number.isFinite(anchor) && Number.isFinite(completed) && completed >= anchor) {
+    return formatDuration(completed - anchor)
+  }
+
+  if (run.status === 'running' && Number.isFinite(anchor)) {
+    return formatDuration(Math.max(0, Date.now() - anchor))
+  }
+
+  return '—'
 }

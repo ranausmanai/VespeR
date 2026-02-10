@@ -125,6 +125,23 @@ class SessionSnapshot:
             self.summary = {}
 
 
+@dataclass
+class RunMemoryEntry:
+    """Structured memory extracted from a completed run."""
+    id: str
+    run_id: str
+    session_id: str
+    objective: Optional[str] = None
+    short_summary: str = ""
+    memory: dict[str, Any] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        if self.memory is None:
+            self.memory = {}
+
+
 class SessionRepository:
     """Repository for session CRUD operations."""
 
@@ -1010,4 +1027,103 @@ class SessionSnapshotRepository:
             summary=json.loads(row["summary_json"] or "{}"),
             resume_prompt=row["resume_prompt"] or "",
             created_at=datetime.fromisoformat(row["created_at"]) if row["created_at"] else None,
+        )
+
+
+class RunMemoryRepository:
+    """Repository for persisted structured run memory entries."""
+
+    def __init__(self, connection: aiosqlite.Connection):
+        self._conn = connection
+
+    async def upsert(
+        self,
+        run_id: str,
+        session_id: str,
+        objective: Optional[str],
+        short_summary: str,
+        memory: dict[str, Any],
+    ) -> RunMemoryEntry:
+        existing = await self.get_for_run(run_id)
+        now = datetime.utcnow()
+
+        if existing:
+            await self._conn.execute(
+                """UPDATE run_memory_entries
+                   SET objective = ?, short_summary = ?, memory_json = ?, updated_at = ?
+                   WHERE run_id = ?""",
+                (
+                    objective,
+                    short_summary,
+                    json.dumps(memory or {}),
+                    now,
+                    run_id,
+                ),
+            )
+            await self._conn.commit()
+            refreshed = await self.get_for_run(run_id)
+            if refreshed:
+                return refreshed
+
+        entry_id = str(uuid.uuid4())
+        await self._conn.execute(
+            """INSERT INTO run_memory_entries
+               (id, run_id, session_id, objective, short_summary, memory_json, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                entry_id,
+                run_id,
+                session_id,
+                objective,
+                short_summary,
+                json.dumps(memory or {}),
+                now,
+                now,
+            ),
+        )
+        await self._conn.commit()
+        return RunMemoryEntry(
+            id=entry_id,
+            run_id=run_id,
+            session_id=session_id,
+            objective=objective,
+            short_summary=short_summary,
+            memory=memory or {},
+            created_at=now,
+            updated_at=now,
+        )
+
+    async def get_for_run(self, run_id: str) -> Optional[RunMemoryEntry]:
+        cursor = await self._conn.execute(
+            "SELECT * FROM run_memory_entries WHERE run_id = ? LIMIT 1",
+            (run_id,),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            return None
+        return self._row_to_memory(row)
+
+    async def list_for_session(self, session_id: str, limit: int = 50) -> list[RunMemoryEntry]:
+        cursor = await self._conn.execute(
+            """SELECT * FROM run_memory_entries
+               WHERE session_id = ?
+               ORDER BY created_at DESC
+               LIMIT ?""",
+            (session_id, limit),
+        )
+        items: list[RunMemoryEntry] = []
+        async for row in cursor:
+            items.append(self._row_to_memory(row))
+        return items
+
+    def _row_to_memory(self, row) -> RunMemoryEntry:
+        return RunMemoryEntry(
+            id=row["id"],
+            run_id=row["run_id"],
+            session_id=row["session_id"],
+            objective=row["objective"],
+            short_summary=row["short_summary"] or "",
+            memory=json.loads(row["memory_json"] or "{}"),
+            created_at=datetime.fromisoformat(row["created_at"]) if row["created_at"] else None,
+            updated_at=datetime.fromisoformat(row["updated_at"]) if row["updated_at"] else None,
         )
