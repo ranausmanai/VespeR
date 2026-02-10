@@ -1,0 +1,153 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0b1220;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#030712;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0b1220;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Venus glow -->
+    <radialGradient id="venusGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:0.3" />
+      <stop offset="40%" style="stop-color:#fbbf24;stop-opacity:0.15" />
+      <stop offset="70%" style="stop-color:#f59e0b;stop-opacity:0.05" />
+      <stop offset="100%" style="stop-color:#030712;stop-opacity:0" />
+    </radialGradient>
+
+    <!-- Cyan glow -->
+    <radialGradient id="cyanGlow" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#22d3ee;stop-opacity:0.2" />
+      <stop offset="50%" style="stop-color:#22d3ee;stop-opacity:0.08" />
+      <stop offset="100%" style="stop-color:#030712;stop-opacity:0" />
+    </radialGradient>
+
+    <!-- Text gradient -->
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22d3ee;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#93c5fd;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Noise texture -->
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="discrete" tableValues="0 0 0 0 1"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Noise overlay -->
+  <rect width="1200" height="630" fill="#ffffff" opacity="0.02" filter="url(#noise)"/>
+
+  <!-- Venus glow (center) -->
+  <ellipse cx="600" cy="315" rx="500" ry="400" fill="url(#venusGlow)"/>
+
+  <!-- Cyan accent glows -->
+  <ellipse cx="100" cy="100" rx="250" ry="200" fill="url(#cyanGlow)" opacity="0.6"/>
+  <ellipse cx="1100" cy="530" rx="200" ry="150" fill="url(#cyanGlow)" opacity="0.5"/>
+
+  <!-- Starfield -->
+  <circle cx="150" cy="80" r="2" fill="#bed2ff" opacity="0.8"/>
+  <circle cx="890" cy="120" r="1.5" fill="#bed2ff" opacity="0.6"/>
+  <circle cx="320" cy="140" r="1" fill="#bed2ff" opacity="0.7"/>
+  <circle cx="1050" cy="200" r="2" fill="#bed2ff" opacity="0.9"/>
+  <circle cx="220" cy="250" r="1.5" fill="#bed2ff" opacity="0.5"/>
+  <circle cx="780" cy="95" r="1" fill="#bed2ff" opacity="0.8"/>
+  <circle cx="450" cy="180" r="1.5" fill="#bed2ff" opacity="0.7"/>
+  <circle cx="950" cy="350" r="1" fill="#bed2ff" opacity="0.6"/>
+  <circle cx="110" cy="420" r="2" fill="#bed2ff" opacity="0.8"/>
+  <circle cx="1120" cy="380" r="1.5" fill="#bed2ff" opacity="0.7"/>
+  <circle cx="340" cy="510" r="1" fill="#bed2ff" opacity="0.6"/>
+  <circle cx="850" cy="480" r="2" fill="#bed2ff" opacity="0.9"/>
+  <circle cx="520" cy="560" r="1.5" fill="#bed2ff" opacity="0.5"/>
+  <circle cx="180" cy="590" r="1" fill="#bed2ff" opacity="0.7"/>
+  <circle cx="1010" cy="110" r="1" fill="#bed2ff" opacity="0.8"/>
+  <circle cx="620" cy="70" r="1.5" fill="#bed2ff" opacity="0.6"/>
+  <circle cx="410" cy="410" r="1" fill="#bed2ff" opacity="0.7"/>
+  <circle cx="730" cy="590" r="2" fill="#bed2ff" opacity="0.8"/>
+
+  <!-- Golden particles (orbital) -->
+  <circle cx="480" cy="260" r="3" fill="#fbbf24" opacity="0.5">
+    <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="720" cy="290" r="2.5" fill="#fbbf24" opacity="0.4">
+    <animate attributeName="opacity" values="0.2;0.6;0.2" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="550" cy="380" r="2" fill="#22d3ee" opacity="0.5">
+    <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="670" cy="350" r="2.5" fill="#22d3ee" opacity="0.4">
+    <animate attributeName="opacity" values="0.2;0.6;0.2" dur="4.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Logo (using simple geometric shape as placeholder) -->
+  <g transform="translate(550, 180)">
+    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#textGradient)" stroke-width="2" opacity="0.6"/>
+    <circle cx="50" cy="50" r="35" fill="#fbbf24" opacity="0.2"/>
+    <circle cx="50" cy="50" r="25" fill="#22d3ee" opacity="0.3"/>
+    <circle cx="50" cy="50" r="15" fill="#fef3c7" opacity="0.5">
+      <animate attributeName="opacity" values="0.3;0.7;0.3" dur="4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Main text -->
+  <text x="600" y="310" font-family="Space Grotesk, sans-serif" font-size="72" font-weight="700" fill="url(#textGradient)" text-anchor="middle">
+    VespeR.run
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="360" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="500" fill="#9fb2d6" text-anchor="middle">
+    Control Plane for Claude Code
+  </text>
+
+  <!-- Feature highlights -->
+  <g transform="translate(0, 420)">
+    <rect x="240" y="0" width="720" height="120" rx="12" fill="rgba(14, 22, 36, 0.6)" stroke="rgba(251, 191, 36, 0.2)" stroke-width="1"/>
+
+    <!-- Three columns of features -->
+    <text x="320" y="40" font-family="Space Grotesk, sans-serif" font-size="18" font-weight="600" fill="#22d3ee">
+      Interactive Sessions
+    </text>
+    <text x="320" y="68" font-family="Space Grotesk, sans-serif" font-size="14" fill="#9fb2d6">
+      Start, pause, resume
+    </text>
+    <text x="320" y="90" font-family="Space Grotesk, sans-serif" font-size="14" fill="#9fb2d6">
+      coding workflows
+    </text>
+
+    <text x="560" y="40" font-family="Space Grotesk, sans-serif" font-size="18" font-weight="600" fill="#fbbf24">
+      Agent Patterns
+    </text>
+    <text x="560" y="68" font-family="Space Grotesk, sans-serif" font-size="14" fill="#9fb2d6">
+      Build+Review Loop
+    </text>
+    <text x="560" y="90" font-family="Space Grotesk, sans-serif" font-size="14" fill="#9fb2d6">
+      Expert Panels
+    </text>
+
+    <text x="780" y="40" font-family="Space Grotesk, sans-serif" font-size="18" font-weight="600" fill="#93c5fd">
+      Full Visibility
+    </text>
+    <text x="780" y="68" font-family="Space Grotesk, sans-serif" font-size="14" fill="#9fb2d6">
+      DAG, timeline
+    </text>
+    <text x="780" y="90" font-family="Space Grotesk, sans-serif" font-size="14" fill="#9fb2d6">
+      execution views
+    </text>
+
+    <!-- Dividers -->
+    <line x1="500" y1="20" x2="500" y2="100" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <line x1="720" y1="20" x2="720" y2="100" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  </g>
+
+  <!-- Shooting star -->
+  <line x1="1050" y1="150" x2="980" y2="180" stroke="url(#textGradient)" stroke-width="2" opacity="0.6" stroke-linecap="round">
+    <animate attributeName="opacity" values="0;0.8;0" dur="2s" repeatCount="indefinite"/>
+  </line>
+</svg>
