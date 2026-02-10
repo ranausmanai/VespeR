@@ -1,0 +1,25 @@
+# VespeR
+
+> Control plane for Claude Code workflows.
+
+VespeR provides:
+- Interactive coding session management
+- Reusable agents and patterns (solo, loop, panel, debate)
+- Execution observability (DAG, timeline, activity)
+- Smart resume snapshots for ended sessions
+
+## Canonical
+- https://vesper.run/
+
+## Project Links
+- Repository: https://github.com/ranausmanai/VespeR
+- README: https://github.com/ranausmanai/VespeR#readme
+- Issues: https://github.com/ranausmanai/VespeR/issues
+
+## Quickstart
+```bash
+pip install -e .
+npm -C frontend install
+npm -C frontend run build
+vesper ui --port 8420 --no-browser
+```
