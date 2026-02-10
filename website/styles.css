@@ -72,10 +72,8 @@ body {
   width: 1.8rem;
   height: 1.8rem;
   border-radius: 0.5rem;
-  display: inline-grid;
-  place-items: center;
-  color: #09111f;
-  background: linear-gradient(135deg, var(--cyan), #8b5cf6);
+  display: block;
+  flex-shrink: 0;
 }
 
 nav {
