@@ -42,6 +42,8 @@
     </script>
   </head>
   <body>
+    <div id="cursor-glow" aria-hidden="true"></div>
+    <canvas id="nebula" aria-hidden="true"></canvas>
     <canvas id="starfield" aria-hidden="true"></canvas>
     <div class="noise" aria-hidden="true"></div>
 
@@ -61,10 +63,10 @@
     <main id="home">
       <section class="hero">
         <p class="eyebrow">CONTROL PLANE FOR CLAUDE CODE</p>
-        <h1>Track, run, and resume <span>coding workflows</span></h1>
+        <h1>Track, run, and resume <span class="gradient-text">coding workflows</span></h1>
         <p class="sub">
-          VespeR is a web control plane on top of Claude Code. It adds interactive session
-          management, reusable agents/patterns, execution visibility, and resumable context.
+          Named after the evening star, VespeR brings clarity to Claude Code workflows.
+          Interactive sessions, reusable agent patterns, execution visibility, and resumable context—all in one control plane.
         </p>
         <div class="hero-actions">
           <a class="button" href="#docs">Get Started</a>
@@ -131,7 +133,7 @@ vesper ui --port 8420 --no-browser</code></pre>
     </main>
 
     <footer>
-      <p>VespeR.run • Workflow control plane for Claude Code</p>
+      <p>VespeR.run • Bringing clarity to your coding workflows</p>
     </footer>
 
     <script src="./script.js"></script>
