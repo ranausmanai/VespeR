@@ -406,6 +406,18 @@ h2 {
   color: var(--muted);
 }
 
+.media-card img {
+  width: 100%;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: block;
+  margin-bottom: 0.8rem;
+}
+
+.media-card p {
+  margin-top: 0.25rem;
+}
+
 pre {
   margin: 0.8rem 0 0;
   background: #020617;
@@ -472,6 +484,15 @@ footer {
   text-align: center;
   color: #89a1c8;
   animation: fade-in-up 0.8s ease-out 0.6s both;
+}
+
+footer a {
+  color: #9fd2ff;
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: var(--venus-gold);
 }
 
 @media (max-width: 900px) {

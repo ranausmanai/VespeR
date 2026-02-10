@@ -57,9 +57,10 @@
         <span>VespeR.run</span>
       </a>
       <nav>
-        <a href="#what">What</a>
+        <a href="#why">Why VespeR</a>
+        <a href="#proof">Proof</a>
         <a href="#use-cases">Use Cases</a>
-        <a href="#docs">Docs</a>
+        <a href="#docs">Quickstart</a>
       </nav>
       <a class="button ghost" href="https://github.com/ranausmanai/VespeR" target="_blank" rel="noreferrer">GitHub</a>
     </header>
@@ -67,30 +68,64 @@
     <main id="home">
       <section class="hero">
         <p class="eyebrow">CONTROL PLANE FOR CLAUDE CODE</p>
-        <h1>Track, run, and resume <span class="gradient-text">coding workflows</span></h1>
+        <h1>Run coding workflows with <span class="gradient-text">control, memory, and proof</span></h1>
         <p class="sub">
-          Named after the evening star, VespeR brings clarity to Claude Code workflows.
-          Interactive sessions, reusable agent patterns, execution visibility, and resumable context—all in one control plane.
+          VespeR is not another chat shell. It is a control plane for Claude Code:
+          reusable agents/patterns, execution DAG visibility, and smart resume context so work continues without repeating steps.
         </p>
         <div class="hero-actions">
-          <a class="button" href="#docs">Get Started</a>
-          <a class="button ghost" href="#use-cases">See Use Cases</a>
+          <a class="button" href="#docs">Start In 5 Minutes</a>
+          <a class="button ghost" href="#proof">See Product Proof</a>
+        </div>
+      </section>
+
+      <section id="why" class="stack">
+        <h2>Why VespeR</h2>
+        <div class="grid two">
+          <article class="card">
+            <h3>What plain chat misses</h3>
+            <p>No shared run visibility, weak multi-agent workflow support, and poor continuity when sessions end.</p>
+          </article>
+          <article class="card">
+            <h3>What VespeR adds</h3>
+            <p>Agent patterns, DAG/timeline observability, multi-session switching, and ranked memory context packs for resume.</p>
+          </article>
         </div>
       </section>
 
       <section id="what" class="grid three">
         <article class="card">
           <h3>Interactive Sessions</h3>
-          <p>Start, rejoin, and manage coding sessions. Stop responses and inject follow-up prompts when needed.</p>
+          <p>Start multiple sessions, rejoin any running one, stop a response without killing the session, and continue safely.</p>
         </article>
         <article class="card">
           <h3>Agents + Patterns</h3>
-          <p>Run specialist agents and workflow templates such as Solo, Build+Review Loop, and Expert Panel.</p>
+          <p>Run specialist agents and patterns like Quick Build, Build+Review Loop, Release Readiness Panel, and Debate.</p>
         </article>
         <article class="card">
           <h3>Execution Visibility</h3>
-          <p>Inspect runs in DAG, timeline, and activity views to see tools used, files touched, and run flow.</p>
+          <p>Inspect runs in DAG, timeline, and split activity views to see tools used, files touched, and where failures occur.</p>
         </article>
+      </section>
+
+      <section id="proof" class="stack">
+        <h2>Proof In Product</h2>
+        <div class="card media-card">
+          <img src="./assets/vesper-flow.gif" alt="VespeR feature walkthrough showing dashboard, sessions, interactive, patterns, and execution views" />
+          <p>Walkthrough: Dashboard -> Sessions -> Interactive -> Agents -> Patterns -> Agent Execution.</p>
+        </div>
+        <div class="grid two">
+          <article class="card media-card">
+            <img src="./assets/dashboard.png" alt="VespeR dashboard with active work and recent runs" />
+            <h3>Operational Dashboard</h3>
+            <p>Track active work across interactive sessions, patterns, and run history from one screen.</p>
+          </article>
+          <article class="card media-card">
+            <img src="./assets/agent-execution.png" alt="VespeR agent execution timeline and flow" />
+            <h3>Debuggable Agent Runs</h3>
+            <p>See exactly what agents did, including tool traces, status transitions, and iteration flow.</p>
+          </article>
+        </div>
       </section>
 
       <section id="use-cases" class="stack">
@@ -98,46 +133,58 @@
         <div class="grid two">
           <article class="card">
             <h3>Build + Review Loop</h3>
-            <p>Generate implementation and review it in the same run with explicit generator/critic roles.</p>
+            <p>Implement and code-review in the same run with explicit generator/critic roles and approval checkpoints.</p>
             <pre><code>[Pattern: Build + Review Loop]
 Add slugify utility with tests and run npm test.</code></pre>
           </article>
           <article class="card">
             <h3>Release Readiness Panel</h3>
-            <p>Run security, performance, and product analysis together and capture one release decision.</p>
+            <p>Run security, performance, and product analysis together and produce one release decision with blockers.</p>
             <pre><code>[Pattern: Release Readiness Panel]
 Assess v0.1 release readiness with go/no-go and blockers.</code></pre>
           </article>
           <article class="card">
-            <h3>Session Continuity</h3>
-            <p>End a session and resume from a compact snapshot instead of replaying full chat history.</p>
+            <h3>Smart Resume Continuity</h3>
+            <p>Resume from ranked memory context (objective, touched files, validations, open loops), not raw transcript dumps.</p>
           </article>
           <article class="card">
             <h3>Agent Debugging</h3>
-            <p>Trace tool calls, file edits, and per-agent flow when a pattern run behaves unexpectedly.</p>
+            <p>Trace tool calls, file edits, and per-agent flow when a pattern run loops or fails unexpectedly.</p>
           </article>
         </div>
       </section>
 
       <section id="docs" class="stack docs">
-        <h2>Docs & Quickstart</h2>
+        <h2>Quickstart</h2>
         <div class="card">
-          <p>Install and run locally:</p>
+          <p>Install and run locally in under five minutes:</p>
           <pre><code>pip install -e .
 npm -C frontend install
 npm -C frontend run build
 vesper ui --port 8420 --no-browser</code></pre>
+          <p>Open <code>http://127.0.0.1:8420</code> and run one of these immediately:</p>
+          <pre><code>[Pattern: Build + Review Loop]
+Add src/utils/slugify.js with tests and run npm test.
+
+[Pattern: Release Readiness Panel]
+Assess this repo for alpha release go/no-go.</code></pre>
           <p class="links">
             <a href="https://github.com/ranausmanai/VespeR" target="_blank" rel="noreferrer">Repository</a>
             <a href="https://github.com/ranausmanai/VespeR#readme" target="_blank" rel="noreferrer">README</a>
             <a href="https://github.com/ranausmanai/VespeR/issues" target="_blank" rel="noreferrer">Issues</a>
+            <a href="https://vesper.run" target="_blank" rel="noreferrer">Website</a>
           </p>
         </div>
       </section>
     </main>
 
     <footer>
-      <p>VespeR.run • Bringing clarity to your coding workflows</p>
+      <p>
+        VespeR.run • Open Source •
+        <a href="https://github.com/ranausmanai/VespeR" target="_blank" rel="noreferrer">GitHub</a> •
+        <a href="mailto:usmanashrafrana@gmail.com">Email</a> •
+        <a href="https://x.com/UsmanReads" target="_blank" rel="noreferrer">X @UsmanReads</a>
+      </p>
     </footer>
 
     <script src="./script.js"></script>
