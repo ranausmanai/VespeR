@@ -79,27 +79,63 @@ pip install -e .
 # Frontend
 npm -C frontend install
 npm -C frontend run build
+
+# Native macOS shell (optional)
+pip install -e ".[desktop]"
+
+# macOS app bundle + DMG build toolchain (optional)
+pip install -e ".[desktop-build]"
 ```
 
 ## Run
 
 ```bash
-# Start UI + API server
+# Start native macOS app
+vesper desktop
+
+# Start UI + API server in browser
 vesper ui --port 8420 --no-browser
 ```
 
-Open: `http://127.0.0.1:8420`
+Open the browser UI at: `http://127.0.0.1:8420`
 
 If `vesper` is not found, use:
 ```bash
+agentling desktop
+
+# Start UI + API server
 agentling ui --port 8420 --no-browser
 ```
+
+For frontend development inside the native shell:
+```bash
+vesper desktop --dev --frontend-url http://127.0.0.1:5173
+```
+Run `npm -C frontend run dev` in a second terminal first.
+
+## macOS App Distribution
+
+Build a standalone `.app` and `.dmg` while keeping the browser UI flow intact:
+
+```bash
+pip install -e ".[desktop-build]"
+bash scripts/build_macos_app.sh
+```
+
+Artifacts:
+- `dist/VespeR.app`
+- `dist/VespeR-macOS.dmg`
+
+The existing browser workflow remains available through `vesper ui`.
 
 ## CLI Commands
 
 ```bash
 # Start UI
 vesper ui
+
+# Start native macOS shell
+vesper desktop
 
 # One-shot tracked run
 vesper run "add JWT auth with tests"
@@ -152,6 +188,9 @@ Agent Execution:
 ```bash
 # Run frontend in dev mode (optional)
 npm -C frontend run dev
+
+# Run native shell against Vite dev server (macOS)
+vesper desktop --dev
 ```
 
 ## License

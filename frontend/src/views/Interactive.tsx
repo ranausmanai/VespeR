@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { MessageCircle, Plus } from 'lucide-react';
 import { ChatInterface } from '../components/chat/ChatInterface';
+import { MODEL_OPTIONS, getDefaultModel, getModelLabel } from '../lib/models';
 
 interface ActiveSession {
   id: string;
@@ -88,7 +89,7 @@ export const Interactive: React.FC = () => {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
-  const [model, setModel] = useState('sonnet');
+  const [model, setModel] = useState(getDefaultModel());
   const [agents, setAgents] = useState<Agent[]>([]);
   const [showStartAnother, setShowStartAnother] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(forceNewSession);
@@ -213,7 +214,10 @@ export const Interactive: React.FC = () => {
         if (contextPack.ok) {
           const data = await contextPack.json();
           const snapshot = data?.snapshot;
-          if (snapshot?.resume_prompt) {
+          const summary = (snapshot?.summary || {}) as Record<string, unknown>;
+          const entriesUsedRaw = summary.entries_used;
+          const entriesUsed = typeof entriesUsedRaw === 'number' ? entriesUsedRaw : Number(entriesUsedRaw || 0);
+          if (snapshot?.resume_prompt && entriesUsed > 0) {
             setLatestSnapshot(snapshot);
             return;
           }
@@ -443,7 +447,7 @@ export const Interactive: React.FC = () => {
             </select>
             {currentActiveSession?.model && (
               <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded border border-gray-700">
-                {currentActiveSession.model}
+                {getModelLabel(currentActiveSession.model)}
               </span>
             )}
           </div>
@@ -492,9 +496,11 @@ export const Interactive: React.FC = () => {
                     onChange={(e) => setModel(e.target.value)}
                     className="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="sonnet">Claude Sonnet</option>
-                    <option value="opus">Claude Opus</option>
-                    <option value="haiku">Claude Haiku</option>
+                    {MODEL_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 {latestSnapshot && (
@@ -601,7 +607,7 @@ export const Interactive: React.FC = () => {
                         <span>{session.project_name}</span>
                       )}
                       {session.model && (
-                        <span className="bg-gray-600 px-1.5 py-0.5 rounded">{session.model}</span>
+                        <span className="bg-gray-600 px-1.5 py-0.5 rounded">{getModelLabel(session.model)}</span>
                       )}
                       {(session.tokens_in || session.tokens_out) ? (
                         <span>{((session.tokens_in || 0) + (session.tokens_out || 0)).toLocaleString()} tokens</span>
@@ -645,9 +651,11 @@ export const Interactive: React.FC = () => {
               onChange={(e) => setModel(e.target.value)}
               className="w-full bg-gray-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="sonnet">Claude Sonnet</option>
-              <option value="opus">Claude Opus</option>
-              <option value="haiku">Claude Haiku</option>
+              {MODEL_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 

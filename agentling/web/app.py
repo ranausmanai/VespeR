@@ -18,6 +18,7 @@ from ..persistence.database import Database
 from ..events.bus import EventBus
 from ..session.manager import SessionManager
 from ..agents.executor import AgentExecutor
+from ..resources import find_frontend_dist
 
 
 DEFAULT_AGENT_TEMPLATES: list[dict[str, Any]] = [
@@ -31,7 +32,7 @@ DEFAULT_AGENT_TEMPLATES: list[dict[str, Any]] = [
             "You are a coding agent. Build complete, working implementations with minimal churn. "
             "Prefer small, safe changes; include tests when appropriate; explain decisions briefly."
         ),
-        "model": "sonnet",
+        "model": "claude:sonnet",
     },
     {
         "template_id": "code_reviewer",
@@ -43,7 +44,7 @@ DEFAULT_AGENT_TEMPLATES: list[dict[str, Any]] = [
             "Review code changes with a bug-first mindset. Identify correctness issues, edge cases, "
             "security risks, and missing tests. Be concise and specific."
         ),
-        "model": "haiku",
+        "model": "claude:haiku",
     },
     {
         "template_id": "security_auditor",
@@ -55,7 +56,7 @@ DEFAULT_AGENT_TEMPLATES: list[dict[str, Any]] = [
             "Audit code for authz/authn flaws, injection risks, secrets exposure, unsafe deserialization, "
             "and dependency risk. Provide severity and exact mitigation steps."
         ),
-        "model": "sonnet",
+        "model": "claude:sonnet",
     },
     {
         "template_id": "performance_optimizer",
@@ -67,7 +68,7 @@ DEFAULT_AGENT_TEMPLATES: list[dict[str, Any]] = [
             "Identify hotspots, unnecessary allocations, blocking operations, N+1 queries, and render inefficiencies. "
             "Recommend measurable, low-risk optimizations."
         ),
-        "model": "sonnet",
+        "model": "claude:sonnet",
     },
     {
         "template_id": "product_strategist",
@@ -79,7 +80,7 @@ DEFAULT_AGENT_TEMPLATES: list[dict[str, Any]] = [
             "Convert requests into phased delivery plans with MVP scope, risks, and validation strategy. "
             "Optimize for user impact and execution speed."
         ),
-        "model": "haiku",
+        "model": "claude:haiku",
     },
 ]
 
@@ -218,7 +219,7 @@ def create_app(serve_frontend: bool = True) -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
         title="VespeR",
-        description="Visual control plane for Claude Code",
+        description="Visual control plane for Claude and Codex",
         version="0.1.0",
         lifespan=lifespan,
     )
@@ -259,8 +260,8 @@ def create_app(serve_frontend: bool = True) -> FastAPI:
 
     # Serve frontend in production
     if serve_frontend:
-        frontend_dist = Path(__file__).parent.parent.parent / "frontend" / "dist"
-        if frontend_dist.exists():
+        frontend_dist = find_frontend_dist()
+        if frontend_dist and frontend_dist.exists():
             app.mount("/assets", StaticFiles(directory=frontend_dist / "assets"), name="assets")
 
             @app.get("/favicon.svg")

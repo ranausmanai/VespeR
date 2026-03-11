@@ -1,4 +1,4 @@
-"""Session manager for coordinating Claude Code runs with event tracking."""
+"""Session manager for coordinating Claude/Codex runs with event tracking."""
 
 import asyncio
 from datetime import datetime
@@ -9,6 +9,7 @@ from .pty_controller import PTYController
 from .interactive import InteractiveSession
 from .git_tracker import GitTracker
 from .memory import persist_run_memory, build_context_pack
+from .provider_adapter import ensure_provider_available
 from ..events.types import Event, EventType
 from ..events.bus import EventBus
 from ..persistence.database import Database
@@ -16,7 +17,7 @@ from ..persistence.repositories import Session, Run
 
 
 class SessionManager:
-    """Manages Claude Code sessions with full observability."""
+    """Manages CLI coding sessions with full observability."""
 
     def __init__(self, database: Database, event_bus: Optional[EventBus] = None):
         self.db = database
@@ -260,11 +261,12 @@ class SessionManager:
         self,
         session_id: str,
         prompt: str,
-        model: str = "sonnet",
+        model: str = "claude:sonnet",
         parent_run_id: Optional[str] = None,
         branch_point_event_id: Optional[str] = None
     ) -> Run:
-        """Start a new Claude Code run."""
+        """Start a new tracked CLI run."""
+        ensure_provider_available(model)
         # Get session
         session = await self.db.sessions.get(session_id)
         if not session:
@@ -302,7 +304,7 @@ class SessionManager:
         return run
 
     async def stream_events(self, run_id: str) -> AsyncIterator[Event]:
-        """Stream events from a running Claude session."""
+        """Stream events from a running tracked session."""
         controller = self._active_runs.get(run_id)
         if not controller:
             raise ValueError(f"No active run {run_id}")
@@ -353,7 +355,7 @@ class SessionManager:
             self._git_trackers.pop(run_id, None)
 
     async def pause_run(self, run_id: str) -> bool:
-        """Pause a running Claude session."""
+        """Pause a running tracked session."""
         controller = self._active_runs.get(run_id)
         if not controller:
             return False
@@ -371,7 +373,7 @@ class SessionManager:
         return True
 
     async def resume_run(self, run_id: str) -> bool:
-        """Resume a paused Claude session."""
+        """Resume a paused tracked session."""
         controller = self._active_runs.get(run_id)
         if not controller:
             return False
@@ -406,7 +408,7 @@ class SessionManager:
         return True
 
     async def abort_run(self, run_id: str) -> bool:
-        """Abort a running Claude session."""
+        """Abort a running tracked session."""
         controller = self._active_runs.get(run_id)
         if not controller:
             return False
@@ -451,7 +453,7 @@ class SessionManager:
         new_run = await self.start_run(
             session_id=original_run.session_id,
             prompt=prompt,
-            model=original_run.model or "sonnet",
+            model=original_run.model or "claude:sonnet",
             parent_run_id=run_id,
             branch_point_event_id=from_event_id
         )
@@ -498,9 +500,10 @@ class SessionManager:
     async def start_interactive_session(
         self,
         session_id: str,
-        model: str = "sonnet"
+        model: str = "claude:sonnet"
     ) -> Run:
-        """Start a new interactive Claude session."""
+        """Start a new interactive provider session."""
+        ensure_provider_available(model)
         session = await self.db.sessions.get(session_id)
         if not session:
             raise ValueError(f"Session {session_id} not found")

@@ -54,7 +54,7 @@ class Agent:
     role: Optional[str] = None
     personality: Optional[str] = None
     system_prompt: Optional[str] = None
-    model: str = "sonnet"
+    model: str = "claude:sonnet"
     tools: list[str] = None
     constraints: dict[str, Any] = None
     created_at: Optional[datetime] = None
@@ -602,7 +602,7 @@ class AgentRepository:
         role: Optional[str] = None,
         personality: Optional[str] = None,
         system_prompt: Optional[str] = None,
-        model: str = "sonnet",
+        model: str = "claude:sonnet",
         tools: Optional[list[str]] = None,
         constraints: Optional[dict] = None
     ) -> Agent:

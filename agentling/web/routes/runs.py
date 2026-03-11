@@ -11,7 +11,7 @@ router = APIRouter()
 class StartRunRequest(BaseModel):
     session_id: str
     prompt: str
-    model: str = "sonnet"
+    model: str = "claude:sonnet"
 
 
 class BranchRunRequest(BaseModel):
@@ -70,7 +70,7 @@ async def list_runs(
 
 @router.post("")
 async def start_run(request: Request, body: StartRunRequest, background_tasks: BackgroundTasks):
-    """Start a new Claude Code run."""
+    """Start a new tracked provider run."""
     session_manager = request.app.state.session_manager
 
     # Start the run

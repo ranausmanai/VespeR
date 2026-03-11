@@ -1,4 +1,4 @@
-"""Agentling CLI - Visual control plane for Claude Code."""
+"""Agentling CLI - Visual control plane for coding agents."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def _build_parser() -> argparse.ArgumentParser:
     cmd = _invoked_name()
     parser = argparse.ArgumentParser(
         prog=cmd,
-        description="VespeR: Visual control plane for Claude Code with multi-agent orchestration.",
+        description="VespeR: Visual control plane for Claude and Codex with multi-agent orchestration.",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -29,6 +29,10 @@ def _build_parser() -> argparse.ArgumentParser:
     # UI command
     from agentling.commands import ui
     ui.add_parser(subparsers)
+
+    # Native desktop command
+    from agentling.commands import desktop
+    desktop.add_parser(subparsers)
 
     # Run command (visual tracking)
     from agentling.commands import run
@@ -136,6 +140,9 @@ def main() -> None:
     if args.command == "ui":
         from agentling.commands import ui
         code = ui.run_command(args)
+    elif args.command == "desktop":
+        from agentling.commands import desktop
+        code = desktop.run_command(args)
     elif args.command == "run":
         from agentling.commands import run
         code = run.run_command(args)
@@ -152,18 +159,20 @@ def main() -> None:
         print("""
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║       🌌 VespeR - Control Plane for Claude Code            ║
+║       🌌 VespeR - Control Plane for Claude & Codex        ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 
 Commands:
   {cmd} ui              Start the visual web UI
-  {cmd} run "<prompt>"  Run Claude Code with tracking
+  {cmd} desktop         Start the native macOS app
+  {cmd} run "<prompt>"  Run Claude or Codex with tracking
   {cmd} replay <id>     Replay a past session
   {cmd} orchestrate     Run multi-agent orchestration
 
 Quick Start:
-  {cmd} ui              # Open the visual interface
+  {cmd} desktop         # Open the native macOS interface
+  {cmd} ui              # Open the browser UI
   {cmd} run "fix bug"   # Run with event tracking
 
 For more help:

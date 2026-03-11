@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Activity, Clock, Cpu, DollarSign, Folder, Zap, MessageSquare, MessageCircle, Workflow } from 'lucide-react'
 import { getSessions, getRuns, getActiveRuns } from '../api/client'
 import { Session, Run } from '../api/types'
+import { getModelLabel } from '../lib/models'
 
 interface ActiveInteractiveSession {
   id: string;
@@ -98,7 +99,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-400">Visual control plane for Claude Code</p>
+          <p className="text-gray-400">Visual control plane for Claude and Codex</p>
         </div>
         <Link
           to="/interactive?new=1"
@@ -119,7 +120,7 @@ export default function Dashboard() {
                 <h3 className="font-medium text-white">
                   {activeChatSessions.length} Active Interactive Session{activeChatSessions.length > 1 ? 's' : ''}
                 </h3>
-                <p className="text-sm text-gray-400">Click to rejoin your conversation with Claude</p>
+                <p className="text-sm text-gray-400">Rejoin an active Claude or Codex conversation</p>
               </div>
             </div>
             <Link
@@ -344,7 +345,7 @@ function RunCard({
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-400">
-          <span>{run.model}</span>
+          <span>{getModelLabel(run.model)}</span>
           <span>{formatRunDuration(run)}</span>
         </div>
       </div>

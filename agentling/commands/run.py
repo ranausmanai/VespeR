@@ -1,4 +1,4 @@
-"""CLI command to execute Claude Code with visual tracking."""
+"""CLI command to execute Claude/Codex with visual tracking."""
 
 import argparse
 import asyncio
@@ -14,8 +14,8 @@ def add_parser(subparsers) -> argparse.ArgumentParser:
     """Add the 'run' subcommand parser."""
     parser = subparsers.add_parser(
         "run",
-        help="Execute Claude Code with visual tracking",
-        description="Run Claude Code and track all events for visualization"
+        help="Execute Claude or Codex with visual tracking",
+        description="Run Claude or Codex and track all events for visualization"
     )
     parser.add_argument(
         "prompt",
@@ -29,8 +29,8 @@ def add_parser(subparsers) -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         "-m",
-        default="sonnet",
-        help="Claude model to use (default: sonnet)"
+        default="claude:sonnet",
+        help="Model spec to use, e.g. claude:sonnet or codex:gpt-5-codex"
     )
     parser.add_argument(
         "--workdir",

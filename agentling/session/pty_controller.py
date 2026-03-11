@@ -1,4 +1,4 @@
-"""PTY controller for spawning and managing Claude Code processes."""
+"""PTY controller for spawning and managing provider CLI processes."""
 
 import asyncio
 import json
@@ -8,27 +8,29 @@ import sys
 from typing import AsyncIterator, Optional, Callable, Awaitable
 from pathlib import Path
 
-from .stream_parser import ClaudeStreamParser
+from .provider_adapter import ensure_provider_available, get_provider_adapter
+from .stream_parser import build_stream_parser
 from ..events.types import Event, EventType, StreamEvent
 
 
 class PTYController:
-    """Spawns and controls Claude Code via subprocess for real-time streaming."""
+    """Spawns and controls Claude/Codex CLI processes for real-time streaming."""
 
     def __init__(
         self,
         session_id: str,
         run_id: str,
         working_dir: str,
-        model: str = "sonnet",
+        model: str = "claude:sonnet",
     ):
         self.session_id = session_id
         self.run_id = run_id
         self.working_dir = Path(working_dir).resolve()
         self.model = model
+        self._model_spec, self._adapter = get_provider_adapter(model)
 
         self._process: Optional[asyncio.subprocess.Process] = None
-        self._parser = ClaudeStreamParser(session_id, run_id)
+        self._parser = build_stream_parser(self._model_spec.provider, session_id, run_id)
         self._paused = False
         self._pause_event = asyncio.Event()
         self._pause_event.set()  # Not paused initially
@@ -42,24 +44,33 @@ class PTYController:
         self._on_event = callback
 
     async def start(self, prompt: str) -> AsyncIterator[Event]:
-        """Start Claude Code with streaming output."""
+        """Start the configured provider CLI with streaming output."""
+        ensure_provider_available(self.model)
         cmd = self._build_command(prompt)
 
-        self._process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.DEVNULL,  # Use DEVNULL - Claude blocks if stdin is PIPE
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=str(self.working_dir),
-            env=self._get_env(),
-        )
+        try:
+            self._process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdin=asyncio.subprocess.DEVNULL,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=str(self.working_dir),
+                env=self._get_env(),
+            )
+        except FileNotFoundError as exc:
+            raise RuntimeError(f"{self._adapter.executable} is not installed or not on PATH") from exc
 
         # Emit run started event
         start_event = Event(
             type=EventType.RUN_STARTED,
             session_id=self.session_id,
             run_id=self.run_id,
-            payload={"prompt": prompt, "model": self.model, "pid": self._process.pid}
+            payload={
+                "prompt": prompt,
+                "model": self.model,
+                "provider": self._model_spec.provider,
+                "pid": self._process.pid,
+            }
         )
         yield start_event
         if self._on_event:
@@ -104,31 +115,17 @@ class PTYController:
             await self._on_event(end_event)
 
     def _build_command(self, prompt: str) -> list[str]:
-        """Build the Claude CLI command."""
-        cmd = [
-            "claude",
-            "-p",  # Non-interactive print mode
-            "--verbose",  # Required for stream-json
-            "--output-format", "stream-json",
-            "--include-partial-messages",  # Include streaming chunks as they arrive
-            "--model", self.model,
-            "--dangerously-skip-permissions",  # For automated runs
-        ]
-
-        # Add the prompt
-        cmd.append(prompt)
-
-        return cmd
+        """Build the provider CLI command."""
+        return self._adapter.build_run_command(prompt, self._model_spec)
 
     def _get_env(self) -> dict[str, str]:
         """Get environment variables for subprocess."""
         env = os.environ.copy()
-        # Ensure we're not in interactive mode
-        env["CLAUDE_CODE_NONINTERACTIVE"] = "1"
+        env.update(self._adapter.build_env_overrides())
         return env
 
     async def _stream_output(self) -> AsyncIterator[Event]:
-        """Stream and parse output from Claude."""
+        """Stream and parse output from the configured provider."""
         if not self._process or not self._process.stdout:
             return
 
@@ -139,7 +136,7 @@ class PTYController:
             if self._terminated:
                 break
 
-            # Read line by line (Claude outputs JSON lines)
+            # Read line by line; both Claude and Codex emit JSON lines here.
             try:
                 line_bytes = await self._process.stdout.readline()
             except Exception:
@@ -156,7 +153,7 @@ class PTYController:
                     yield event
 
     async def pause(self) -> None:
-        """Pause the Claude process."""
+        """Pause the provider process."""
         if self._process and self._process.returncode is None and not self._paused:
             self._paused = True
             self._pause_event.clear()
@@ -169,7 +166,7 @@ class PTYController:
                     pass
 
     async def resume(self) -> None:
-        """Resume the Claude process."""
+        """Resume the provider process."""
         if self._process and self._paused:
             # Send SIGCONT on Unix
             if sys.platform != "win32":
@@ -182,16 +179,16 @@ class PTYController:
             self._pause_event.set()
 
     async def inject_input(self, message: str) -> None:
-        """Inject input into Claude's stdin.
+        """Inject input into the provider's stdin.
 
         Note: Currently not supported since we use DEVNULL for stdin to prevent
-        Claude from blocking. Future versions may implement this via PTY.
+        CLI blocking. Future versions may implement this via PTY.
         """
         # TODO: Implement input injection via PTY or named pipe
         pass
 
     async def terminate(self) -> None:
-        """Terminate the Claude process."""
+        """Terminate the provider process."""
         self._terminated = True
         self._pause_event.set()  # Unblock if paused
 

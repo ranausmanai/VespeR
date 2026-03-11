@@ -20,8 +20,11 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 // Sessions
-export async function getSessions(): Promise<{ sessions: Session[] }> {
-  return fetchJson('/sessions')
+export async function getSessions(status: 'active' | 'archived' | 'all' = 'active'): Promise<{ sessions: Session[] }> {
+  if (status === 'all') {
+    return fetchJson('/sessions')
+  }
+  return fetchJson(`/sessions?status=${status}`)
 }
 
 export async function getSession(id: string): Promise<Session> {
@@ -33,6 +36,10 @@ export async function createSession(workingDir: string, name?: string): Promise<
     method: 'POST',
     body: JSON.stringify({ working_dir: workingDir, name }),
   })
+}
+
+export async function deleteSession(id: string): Promise<{ status: string; id: string }> {
+  return fetchJson(`/sessions/${id}`, { method: 'DELETE' })
 }
 
 export async function pickSessionDirectory(): Promise<{
@@ -58,7 +65,7 @@ export async function getRun(id: string): Promise<Run> {
 export async function startRun(
   sessionId: string,
   prompt: string,
-  model: string = 'sonnet'
+  model: string = 'claude:sonnet'
 ): Promise<Run> {
   return fetchJson('/runs', {
     method: 'POST',

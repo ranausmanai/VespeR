@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Folder, Play, ChevronRight } from 'lucide-react'
-import { getSessions, getSession, createSession, pickSessionDirectory } from '../api/client'
+import { Folder, Play, ChevronRight, Trash2 } from 'lucide-react'
+import { getSessions, getSession, createSession, pickSessionDirectory, deleteSession } from '../api/client'
 import { Session, Run } from '../api/types'
+import { getModelLabel } from '../lib/models'
 
 export default function Sessions() {
   const [sessions, setSessions] = useState<Session[]>([])
@@ -54,6 +55,30 @@ export default function Sessions() {
       setSelectedSession(full)
     } catch (e) {
       console.error('Failed to load session:', e)
+    }
+  }
+
+  const handleDeleteSession = async (session: Session) => {
+    const label = session.name || session.working_dir || 'this session'
+    const confirmed = window.confirm(`Archive ${label}?\\n\\nYou can keep runs, but this session will be hidden from active lists.`)
+    if (!confirmed) return
+
+    try {
+      await deleteSession(session.id)
+      const data = await getSessions()
+      setSessions(data.sessions)
+
+      if (selectedSession?.id === session.id) {
+        if (data.sessions.length > 0) {
+          const full = await getSession(data.sessions[0].id)
+          setSelectedSession(full)
+        } else {
+          setSelectedSession(null)
+        }
+      }
+    } catch (e) {
+      console.error('Failed to archive session:', e)
+      alert(e instanceof Error ? e.message : 'Failed to archive session.')
     }
   }
 
@@ -210,6 +235,15 @@ export default function Sessions() {
                 >
                   Start Fresh
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteSession(selectedSession)}
+                  className="px-3 py-2 rounded bg-red-900/60 hover:bg-red-800 text-sm font-medium text-red-100 transition-colors inline-flex items-center gap-1.5"
+                  title="Archive session"
+                >
+                  <Trash2 size={14} />
+                  Delete Session
+                </button>
               </div>
             </div>
 
@@ -234,7 +268,7 @@ export default function Sessions() {
                                 {run.prompt.slice(0, 80)}...
                               </p>
                               <p className="text-sm text-gray-400">
-                                {run.model} • {formatRunDuration(run)} • {run.tokens_in + run.tokens_out} tokens
+                                {getModelLabel(run.model)} • {formatRunDuration(run)} • {run.tokens_in + run.tokens_out} tokens
                               </p>
                             </div>
                           </div>

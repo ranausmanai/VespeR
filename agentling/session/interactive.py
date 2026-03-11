@@ -1,4 +1,4 @@
-"""Interactive session controller using Claude's --resume for conversation continuity."""
+"""Interactive session controller for Claude/Codex conversation continuity."""
 
 import asyncio
 import os
@@ -7,32 +7,32 @@ from datetime import datetime
 from pathlib import Path
 from typing import AsyncIterator, Optional, Callable, Awaitable
 
-from .stream_parser import ClaudeStreamParser
+from .provider_adapter import ensure_provider_available, get_provider_adapter
+from .stream_parser import build_stream_parser
 from ..events.types import Event, EventType, StreamEvent
 
 
 class InteractiveSession:
-    """Manages an interactive Claude Code session using --resume for multi-turn."""
+    """Manages an interactive provider session using provider-native resume support."""
 
     def __init__(
         self,
         session_id: str,
         run_id: str,
         working_dir: str,
-        model: str = "sonnet",
+        model: str = "claude:sonnet",
     ):
         self.session_id = session_id
         self.run_id = run_id
         self.working_dir = Path(working_dir).resolve()
         self.model = model
-
-        # Generate a unique Claude session ID for conversation continuity
-        self._claude_session_id = str(uuid.uuid4())
-
-        self._parser = ClaudeStreamParser(session_id, run_id)
+        self._model_spec, self._adapter = get_provider_adapter(model)
+        self._conversation_id = str(uuid.uuid4()) if self._model_spec.provider == "claude" else None
+        self._parser = build_stream_parser(self._model_spec.provider, session_id, run_id)
         self._is_running = False
         self._current_process: Optional[asyncio.subprocess.Process] = None
         self._turn_count = 0
+        self._history: list[tuple[str, str]] = []
 
         # Callbacks
         self._on_event: Optional[Callable[[Event], Awaitable[None]]] = None
@@ -43,6 +43,7 @@ class InteractiveSession:
 
     async def initialize(self) -> Event:
         """Initialize the interactive session (emits start event)."""
+        ensure_provider_available(self.model)
         self._is_running = True
 
         start_event = Event(
@@ -52,7 +53,8 @@ class InteractiveSession:
             payload={
                 "model": self.model,
                 "interactive": True,
-                "claude_session_id": self._claude_session_id
+                "provider": self._model_spec.provider,
+                "conversation_id": self._conversation_id,
             }
         )
 
@@ -81,32 +83,48 @@ class InteractiveSession:
         if self._on_event:
             await self._on_event(user_event)
 
-        # Build command - use --resume for subsequent messages
-        cmd = self._build_command(message)
+        effective_message = self._prepare_message(message)
+        cmd = self._build_command(effective_message)
+        assistant_parts: list[str] = []
 
         # Start process
-        self._current_process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.DEVNULL,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            cwd=str(self.working_dir),
-            env=self._get_env(),
-        )
+        try:
+            self._current_process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdin=asyncio.subprocess.DEVNULL,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=str(self.working_dir),
+                env=self._get_env(),
+            )
+        except FileNotFoundError as exc:
+            raise RuntimeError(f"{self._adapter.executable} is not installed or not on PATH") from exc
 
         # Stream response
         try:
             async for event in self._stream_response():
+                self._ingest_conversation_event(event)
+                if event.type == EventType.STREAM_ASSISTANT and getattr(event, "content", ""):
+                    assistant_parts.append(event.content)
                 yield event
                 if self._on_event:
                     await self._on_event(event)
         finally:
             if self._current_process:
-                await self._current_process.wait()
+                return_code = await self._current_process.wait()
+                stderr_text = ""
+                if self._current_process.stderr:
+                    stderr_bytes = await self._current_process.stderr.read()
+                    stderr_text = stderr_bytes.decode("utf-8", errors="replace").strip()
                 self._current_process = None
+                if return_code != 0:
+                    raise RuntimeError(stderr_text or f"{self._adapter.executable} exited with code {return_code}")
+
+        assistant_text = "".join(assistant_parts).strip()
+        self._record_turn(message, assistant_text)
 
     async def _stream_response(self) -> AsyncIterator[Event]:
-        """Stream and parse response from Claude."""
+        """Stream and parse response from the configured provider."""
         if not self._current_process or not self._current_process.stdout:
             return
 
@@ -126,32 +144,52 @@ class InteractiveSession:
                     yield event
 
     def _build_command(self, message: str) -> list[str]:
-        """Build the Claude CLI command."""
-        cmd = [
-            "claude",
-            "-p",
-            "--verbose",
-            "--output-format", "stream-json",
-            "--include-partial-messages",
-            "--model", self.model,
-            "--dangerously-skip-permissions",
-        ]
-
-        # First message: use --session-id to establish the session
-        # Subsequent messages: use --resume to continue the conversation
-        if self._turn_count == 1:
-            cmd.extend(["--session-id", self._claude_session_id])
-        else:
-            cmd.extend(["--resume", self._claude_session_id])
-
-        cmd.append(message)
-        return cmd
+        """Build the provider-specific interactive command."""
+        return self._adapter.build_interactive_command(
+            message,
+            self._model_spec,
+            turn_count=self._turn_count,
+            conversation_id=self._conversation_id,
+        )
 
     def _get_env(self) -> dict[str, str]:
         """Get environment variables for subprocess."""
         env = os.environ.copy()
-        env["CLAUDE_CODE_NONINTERACTIVE"] = "1"
+        env.update(self._adapter.build_env_overrides())
         return env
+
+    def _prepare_message(self, message: str) -> str:
+        if self._model_spec.provider != "codex" or not self._history:
+            return message
+
+        recent_turns = self._history[-8:]
+        transcript = "\n\n".join(
+            f"{role.title()}:\n{text}" for role, text in recent_turns if text.strip()
+        )
+        return (
+            "Continue this coding conversation. Treat the transcript as prior context.\n\n"
+            f"{transcript}\n\n"
+            f"User:\n{message}"
+        )
+
+    def _record_turn(self, user_message: str, assistant_message: str) -> None:
+        if self._model_spec.provider != "codex":
+            return
+        self._history.append(("user", user_message))
+        if assistant_message:
+            self._history.append(("assistant", assistant_message))
+        self._history = self._history[-16:]
+
+    def _ingest_conversation_event(self, event: Event) -> None:
+        payload = event.payload or {}
+        if self._model_spec.provider == "codex":
+            thread_id = (
+                payload.get("thread_id")
+                or payload.get("id")
+                or payload.get("thread", {}).get("id")
+            )
+            if isinstance(thread_id, str) and thread_id:
+                self._conversation_id = thread_id
 
     async def terminate(self) -> None:
         """Terminate the session."""
@@ -169,7 +207,7 @@ class InteractiveSession:
                 pass
 
     async def interrupt_current_response(self) -> bool:
-        """Interrupt the currently running Claude turn, keeping session alive."""
+        """Interrupt the currently running turn while keeping the session alive."""
         if not self._current_process or self._current_process.returncode is not None:
             return False
 
@@ -198,6 +236,6 @@ class InteractiveSession:
         return self._current_process.pid if self._current_process else None
 
     @property
-    def claude_session_id(self) -> str:
-        """Get the Claude session ID for conversation continuity."""
-        return self._claude_session_id
+    def conversation_id(self) -> Optional[str]:
+        """Get the provider-native conversation/thread identifier."""
+        return self._conversation_id

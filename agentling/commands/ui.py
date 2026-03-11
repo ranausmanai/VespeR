@@ -3,7 +3,8 @@
 import argparse
 import asyncio
 import webbrowser
-from pathlib import Path
+
+from ..ui_server import create_ui_server
 
 
 def add_parser(subparsers) -> argparse.ArgumentParser:
@@ -40,31 +41,17 @@ def add_parser(subparsers) -> argparse.ArgumentParser:
 async def run_server(host: str, port: int, open_browser: bool, dev_mode: bool):
     """Run the web server."""
     try:
-        import uvicorn
-    except ImportError:
+        server = create_ui_server(host=host, port=port, dev_mode=dev_mode)
+    except RuntimeError:
         print("Error: uvicorn not installed. Run: pip install uvicorn")
         return 1
-
-    from ..web.app import create_app
-
-    app = create_app(serve_frontend=not dev_mode)
-
-    config = uvicorn.Config(
-        app,
-        host=host,
-        port=port,
-        log_level="info",
-        access_log=True,
-    )
-    server = uvicorn.Server(config)
 
     # Open browser after short delay
     if open_browser:
         async def open_browser_delayed():
             await asyncio.sleep(1.0)
-            url = f"http://{host}:{port}"
-            print(f"\n  Opening {url} in browser...\n")
-            webbrowser.open(url)
+            print(f"\n  Opening {server.url} in browser...\n")
+            webbrowser.open(server.url)
 
         asyncio.create_task(open_browser_delayed())
 
@@ -73,16 +60,16 @@ async def run_server(host: str, port: int, open_browser: bool, dev_mode: bool):
 ║                                                              ║
 ║     🚀 Agentling Visual UI                                   ║
 ║                                                              ║
-║     Local:   http://{host}:{port:<5}                          ║
-║     API:     http://{host}:{port}/api                        ║
-║     WebSocket: ws://{host}:{port}/ws                         ║
+║     Local:   {server.url:<47}║
+║     API:     {server.url + '/api':<47}║
+║     WebSocket:{server.ws_url:<47}║
 ║                                                              ║
 ║     Press Ctrl+C to stop                                     ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
     """)
 
-    await server.serve()
+    await server.serve_forever()
     return 0
 
 

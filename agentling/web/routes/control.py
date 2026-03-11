@@ -1,4 +1,4 @@
-"""Control API routes for managing running Claude sessions."""
+"""Control API routes for managing running tracked sessions."""
 
 from typing import Optional
 from fastapi import APIRouter, Request, HTTPException
@@ -18,7 +18,7 @@ class RetryRequest(BaseModel):
 
 @router.post("/runs/{run_id}/pause")
 async def pause_run(request: Request, run_id: str):
-    """Pause a running Claude session."""
+    """Pause a running tracked session."""
     session_manager = request.app.state.session_manager
 
     success = await session_manager.pause_run(run_id)
@@ -30,7 +30,7 @@ async def pause_run(request: Request, run_id: str):
 
 @router.post("/runs/{run_id}/resume")
 async def resume_run(request: Request, run_id: str):
-    """Resume a paused Claude session."""
+    """Resume a paused tracked session."""
     session_manager = request.app.state.session_manager
 
     success = await session_manager.resume_run(run_id)
@@ -42,7 +42,7 @@ async def resume_run(request: Request, run_id: str):
 
 @router.post("/runs/{run_id}/abort")
 async def abort_run(request: Request, run_id: str):
-    """Abort a running Claude session."""
+    """Abort a running tracked session."""
     session_manager = request.app.state.session_manager
 
     success = await session_manager.abort_run(run_id)

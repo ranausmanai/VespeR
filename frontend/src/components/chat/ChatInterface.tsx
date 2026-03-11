@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { User, Bot, FileText, Terminal, Edit, FileCode, Check, Zap, Send, Square } from 'lucide-react';
+import { getModelLabel } from '../../lib/models';
 
 interface Message {
   id: string;
@@ -136,6 +137,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const assistantLabel = sessionInfo.model?.includes('codex') ? 'Codex' : 'Assistant';
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -446,7 +448,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400">
               {sessionInfo.model && (
-                <span className="bg-gray-700 px-2 py-0.5 rounded">{sessionInfo.model}</span>
+                <span className="bg-gray-700 px-2 py-0.5 rounded">{getModelLabel(sessionInfo.model)}</span>
               )}
               {(sessionInfo.tokens_in || sessionInfo.tokens_out) ? (
                 <span className="flex items-center gap-1">
@@ -484,7 +486,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8">
             <p className="text-lg mb-2">Start a conversation</p>
-            <p className="text-sm">Type a message below to begin interacting with Claude</p>
+            <p className="text-sm">Type a message below to begin interacting with the active coding agent</p>
           </div>
         ) : (
           messages.map((message) => (
@@ -511,7 +513,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-purple-400">Claude</span>
+                      <span className="font-medium text-purple-400">{assistantLabel}</span>
                       <span className="text-xs text-gray-500">{formatTime(message.timestamp)}</span>
                     </div>
                     <div className="text-gray-200 prose prose-invert prose-sm max-w-none prose-pre:bg-gray-800 prose-pre:border prose-pre:border-gray-700 prose-code:text-purple-300">
@@ -533,7 +535,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                       </span>
                       {message.agentModel && (
                         <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">
-                          {message.agentModel}
+                          {getModelLabel(message.agentModel)}
                         </span>
                       )}
                       <span className="text-xs text-gray-500">{formatTime(message.timestamp)}</span>
@@ -607,7 +609,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-                <span className="text-gray-400 text-sm">Claude is working on your request...</span>
+                <span className="text-gray-400 text-sm">{assistantLabel} is working on your request...</span>
               </div>
             </div>
           </div>

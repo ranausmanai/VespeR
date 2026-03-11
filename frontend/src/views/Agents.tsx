@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { getAgents, createAgent, deleteAgent, getSessions, getAgent, updateAgent } from '../api/client'
 import { Agent, Session } from '../api/types'
+import { MODEL_OPTIONS, getDefaultModel, getModelLabel } from '../lib/models'
 
 interface AgentFormData {
   name: string
@@ -33,12 +34,6 @@ const ROLE_OPTIONS = [
   { value: 'researcher', label: 'Researcher', description: 'Information gathering' },
 ]
 
-const MODEL_OPTIONS = [
-  { value: 'sonnet', label: 'Claude Sonnet', description: 'Balanced performance' },
-  { value: 'opus', label: 'Claude Opus', description: 'Maximum capability' },
-  { value: 'haiku', label: 'Claude Haiku', description: 'Fast and efficient' },
-]
-
 export default function Agents() {
   const { agentId } = useParams<{ agentId?: string }>()
   const navigate = useNavigate()
@@ -54,7 +49,7 @@ export default function Agents() {
     role: 'generator',
     personality: '',
     system_prompt: '',
-    model: 'sonnet',
+    model: getDefaultModel(),
   })
   const [creating, setCreating] = useState(false)
 
@@ -74,7 +69,7 @@ export default function Agents() {
           role: agent.role || 'generator',
           personality: agent.personality || '',
           system_prompt: agent.system_prompt || '',
-          model: agent.model || 'sonnet',
+          model: agent.model || getDefaultModel(),
         })
         setShowCreateModal(true)
       } catch (e) {
@@ -108,7 +103,7 @@ export default function Agents() {
       role: 'generator',
       personality: '',
       system_prompt: '',
-      model: 'sonnet',
+      model: getDefaultModel(),
     })
   }
 
@@ -423,7 +418,7 @@ function AgentCard({
               {roleIcons[agent.role || ''] || <Bot size={12} />}
               <span className="capitalize">{agent.role || 'Agent'}</span>
               <span className="mx-1">•</span>
-              <span>{agent.model}</span>
+              <span>{getModelLabel(agent.model)}</span>
             </div>
           </div>
         </div>

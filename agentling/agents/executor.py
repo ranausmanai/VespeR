@@ -105,7 +105,7 @@ class AgentExecutor:
         run = await self.db.runs.create(
             session_id=session_id,
             prompt=f"[Agent Pattern: {pattern.name}] {input_text[:100]}",
-            model="sonnet"
+            model="claude:sonnet"
         )
         await self.db.runs.update_status(run.id, "running")
 
@@ -511,12 +511,12 @@ class AgentExecutor:
         # Build the full prompt with agent's system prompt
         full_prompt = self._build_full_prompt(agent, input_text)
 
-        # Run Claude with agent's configuration
+        # Run the selected provider with the agent's configuration
         controller = PTYController(
             session_id=state.session_id,
             run_id=state.run_id,
             working_dir=working_dir,
-            model=agent.model or "sonnet"
+            model=agent.model or "claude:sonnet"
         )
 
         output_text = ""

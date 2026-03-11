@@ -13,7 +13,7 @@ class CreateAgentRequest(BaseModel):
     role: Optional[str] = None
     personality: Optional[str] = None
     system_prompt: Optional[str] = None
-    model: str = "sonnet"
+    model: str = "claude:sonnet"
     tools: Optional[List[str]] = None
     constraints: Optional[dict] = None
 

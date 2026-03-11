@@ -17,7 +17,7 @@ _MAX_REPEATED_BASH_COMMAND = 8
 
 class StartInteractiveRequest(BaseModel):
     session_id: str
-    model: str = "sonnet"
+    model: str = "claude:sonnet"
 
 
 class SendMessageRequest(BaseModel):
@@ -273,7 +273,7 @@ def _build_smart_context(
 
 @router.post("")
 async def start_interactive_session(request: Request, body: StartInteractiveRequest):
-    """Start a new interactive Claude session."""
+    """Start a new interactive provider session."""
     session_manager = request.app.state.session_manager
 
     try:
@@ -490,7 +490,7 @@ async def invoke_agent(request: Request, run_id: str, body: InvokeAgentRequest):
         session_id=run.session_id,
         run_id=f"{run_id}-agent-{agent.id}",
         working_dir=session.working_dir,
-        model=agent.model or "sonnet",
+        model=agent.model or "claude:sonnet",
     )
 
     output_chunks: list[str] = []
